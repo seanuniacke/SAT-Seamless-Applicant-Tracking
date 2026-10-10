@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SAT - Seamless Applicant Tracking</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- PDF.js for zero-cost client-side PDF parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+  
+  <!-- Mammoth.js for client-side Word (.docx) document parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <!-- Chart.js for Analytics and Reporting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Plus Jakarta Sans Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --app-font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      font-family: var(--app-font);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-6 py-2.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- SAT Brand Logo & Subtitle -->
+      <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="navigateTo('view-home')">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 p-[1.5px] shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 shrink-0">
+          <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-cyan-500/10"></div>
+            <!-- Monogram Logo -->
+            <svg class="w-6 h-4 relative z-10" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 5C7.5 4 4.5 4.2 3.5 6C2.5 7.8 4 9.2 6.5 10C9.5 11 10.5 12.2 9.8 14.5C9 17 5.5 17.5 3 16" stroke="url(#sat-grad-1)" stroke-width="2.6" stroke-linecap="round"/>
+              <path d="M14 17L19.5 4.5L25 17" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 13H23" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M28.5 4.5H38" stroke="url(#sat-grad-2)" stroke-width="2.6" stroke-linecap="round"/>
+              <path d="M33.2 4.5V17" stroke="url(#sat-grad-2)" stroke-width="2.6" stroke-linecap="round"/>
+              <circle cx="33.2" cy="17" r="1.6" fill="#34d399"/>
+              <defs>
+                <linearGradient id="sat-grad-1" x1="2" y1="4" x2="10" y2="17" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#818cf8"/>
+                  <stop offset="1" stop-color="#c084fc"/>
+                </linearGradient>
+                <linearGradient id="sat-grad-2" x1="28" y1="4" x2="38" y2="17" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38bdf8"/>
+                  <stop offset="1" stop-color="#818cf8"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-base font-extrabold text-white tracking-tight leading-none">SAT</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 truncate mt-0.5 font-medium">Seamless Applicant Tracking</p>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800">
+        <button class="nav-link px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 shadow-sm transition flex items-center space-x-1.5" data-view="view-home">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i>
+          <span>Home</span>
+        </button>
+        <button class="nav-link px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center space-x-1.5" data-view="view-jobs">
+          <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+          <span>Job Postings</span>
+        </button>
+        <button class="nav-link px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center space-x-1.5" data-view="view-candidates">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Candidates &amp; Resumes</span>
+          <span id="nav-count-badge" class="bg-slate-800 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1">0</span>
+        </button>
+        <button class="nav-link px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center space-x-1.5" data-view="view-analytics">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+          <span>Analytics</span>
+        </button>
+        <button class="nav-link px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center space-x-1.5" data-view="view-portal">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>Apply Portal</span>
+        </button>
+      </nav>
+
+      <!-- Settings Icon Button (Clean gear icon only) -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <button id="btn-open-settings" aria-label="Settings" class="relative w-9 h-9 flex items-center justify-center text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 rounded-xl transition active:scale-95 shadow-sm">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span id="settings-auth-dot" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-900"></span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Scrollable Sub-Menu Bar -->
+    <div class="md:hidden flex items-center space-x-1 overflow-x-auto no-scrollbar pt-2 border-t border-slate-800/60 mt-2">
+      <button class="mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 shrink-0" data-view="view-home">Home</button>
+      <button class="mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 shrink-0" data-view="view-jobs">Job Postings</button>
+      <button class="mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 shrink-0 flex items-center space-x-1" data-view="view-candidates">
+        <span>Candidates</span>
+        <span id="mobile-nav-count-badge" class="bg-slate-800 text-slate-300 text-[10px] px-1 rounded-full">0</span>
+      </button>
+      <button class="mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 shrink-0" data-view="view-analytics">Analytics</button>
+      <button class="mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 shrink-0" data-view="view-portal">Apply Portal</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 flex-1 w-full space-y-6">
+
+    <!-- VIEW 1: HOME DASHBOARD -->
+    <section id="view-home" class="app-view space-y-6">
+      
+      <!-- Welcome Banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900/60 via-slate-900 to-slate-900 border border-indigo-700/40 p-5 sm:p-7 shadow-2xl">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-2.5">
+            Zero-Budget Client-Side Talent Engine
+          </div>
+          <h2 class="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Seamless Applicant Tracking</h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+            Eliminate manual resume review fatigue. Parse job descriptions from PDF or Word docs, batch-screen 300+ resumes locally in your browser with zero server costs, and surface top contenders instantly.
+          </p>
+          <div class="flex flex-wrap items-center gap-2.5 mt-4">
+            <button onclick="navigateTo('view-jobs')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/30 transition flex items-center space-x-1.5 active:scale-95">
+              <i data-lucide="file-up" class="w-4 h-4"></i>
+              <span>Upload Job Description</span>
+            </button>
+            <button onclick="navigateTo('view-candidates')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 active:scale-95">
+              <i data-lucide="folder-up" class="w-4 h-4"></i>
+              <span>Batch Drop Resumes</span>
+            </button>
+            <button onclick="loadSampleDemoPipeline()" class="px-3.5 py-2 bg-emerald-950/70 hover:bg-emerald-900/70 text-emerald-300 border border-emerald-800/50 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 active:scale-95">
+              <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+              <span>Load 12 Sample Resumes</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick KPI Stats Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Active Job Profile</span>
+            <i data-lucide="briefcase" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div id="home-stat-job-title" class="text-sm sm:text-base font-bold text-white mt-1 truncate">Senior Project Manager</div>
+          <p id="home-stat-dept" class="text-[11px] text-slate-500 truncate mt-0.5">Operations &amp; Delivery</p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-lg">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Total Ingested</span>
+            <i data-lucide="inbox" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div id="home-stat-total" class="text-xl sm:text-2xl font-extrabold text-white font-mono mt-1">0</div>
+          <p class="text-[11px] text-slate-500 mt-0.5">Processed locally</p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-emerald-900/40 rounded-2xl p-4 shadow-lg bg-gradient-to-b from-emerald-950/20 to-transparent">
+          <div class="flex items-center justify-between text-emerald-400 text-xs font-medium">
+            <span>Passed Hard Gates</span>
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div id="home-stat-passed" class="text-xl sm:text-2xl font-extrabold text-emerald-400 font-mono mt-1">0</div>
+          <p id="home-stat-pass-rate" class="text-[11px] text-emerald-400/80 mt-0.5">0% of pipeline</p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-rose-900/40 rounded-2xl p-4 shadow-lg bg-gradient-to-b from-rose-950/20 to-transparent">
+          <div class="flex items-center justify-between text-rose-400 text-xs font-medium">
+            <span>Disqualified</span>
+            <i data-lucide="slash" class="w-4 h-4 text-rose-400"></i>
+          </div>
+          <div id="home-stat-disqualified" class="text-xl sm:text-2xl font-extrabold text-rose-400 font-mono mt-1">0</div>
+          <p class="text-[11px] text-rose-400/80 mt-0.5">Failed mandatory gate</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards & Funnel Overview -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- Action Cards (2 Columns) -->
+        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          
+          <div onclick="navigateTo('view-jobs')" class="bg-slate-900/70 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-600/60 rounded-2xl p-4 sm:p-5 cursor-pointer transition group shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-indigo-950 text-indigo-400 border border-indigo-800/50 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+              <i data-lucide="file-text" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white group-hover:text-indigo-300 transition">1. Setup Role &amp; Hard Gates</h3>
+            <p class="text-xs text-slate-400 mt-1">Upload a job posting file or paste requirements. Configures non-negotiable hard gates and preferred skills.</p>
+          </div>
+
+          <div onclick="navigateTo('view-candidates')" class="bg-slate-900/70 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-600/60 rounded-2xl p-4 sm:p-5 cursor-pointer transition group shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-violet-950 text-violet-400 border border-violet-800/50 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+              <i data-lucide="layers" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white group-hover:text-violet-300 transition">2. Ingest 300 Resumes</h3>
+            <p class="text-xs text-slate-400 mt-1">Drag and drop all applicant PDFs or Word docs at once. Instant client-side text extraction without fees.</p>
+          </div>
+
+          <div onclick="navigateTo('view-candidates')" class="bg-slate-900/70 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-600/60 rounded-2xl p-4 sm:p-5 cursor-pointer transition group shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800/50 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+              <i data-lucide="user-check" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white group-hover:text-emerald-300 transition">3. Review &amp; Shortlist Top Matches</h3>
+            <p class="text-xs text-slate-400 mt-1">Inspect matching scores, check tailored interview questions, and copy pre-drafted invite emails.</p>
+          </div>
+
+          <div onclick="navigateTo('view-analytics')" class="bg-slate-900/70 hover:bg-slate-800/80 border border-slate-800 hover:border-cyan-600/60 rounded-2xl p-4 sm:p-5 cursor-pointer transition group shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-800/50 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+              <i data-lucide="pie-chart" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white group-hover:text-cyan-300 transition">4. Hiring Funnel &amp; Reports</h3>
+            <p class="text-xs text-slate-400 mt-1">Analyze disqualification patterns, skill gap density, and download structured CSV screening reports.</p>
+          </div>
+
+        </div>
+
+        <!-- Funnel Preview Card -->
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5">
+                <i data-lucide="filter" class="w-4 h-4 text-indigo-400"></i>
+                <span>Pipeline Funnel Velocity</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Live Stage Stats</span>
+            </div>
+            
+            <div class="space-y-3 mt-4 text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>1. Total Applicants</span>
+                  <span id="funnel-count-1" class="font-mono font-bold text-white">0</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div id="funnel-bar-1" class="bg-slate-400 h-2 rounded-full" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>2. Passed Hard Gates</span>
+                  <span id="funnel-count-2" class="font-mono font-bold text-amber-400">0</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div id="funnel-bar-2" class="bg-amber-400 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>3. High Match (&ge;75%)</span>
+                  <span id="funnel-count-3" class="font-mono font-bold text-emerald-400">0</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div id="funnel-bar-3" class="bg-emerald-400 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>4. Shortlisted for Interview</span>
+                  <span id="funnel-count-4" class="font-mono font-bold text-indigo-400">0</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div id="funnel-bar-4" class="bg-indigo-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Candidate Data:</span>
+            <span class="text-emerald-400 font-semibold flex items-center space-x-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Encrypted in RAM</span>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: JOB POSTINGS & INTELLIGENT DOCUMENT PARSER -->
+    <section id="view-jobs" class="app-view hidden space-y-5">
+      
+      <!-- Upload & Auto-Extract Banner -->
+      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+              <i data-lucide="file-search" class="w-5 h-5 text-indigo-400"></i>
+              <span>Upload &amp; Auto-Parse Job Posting</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Upload an existing job description in Word (.docx), PDF, or text. SAT automatically extracts the title, requirements, hard gates, and skills into editable fields.
+            </p>
+          </div>
+          <button id="btn-save-job-profile" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-1.5 active:scale-95 shrink-0">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Save Profile &amp; Recalculate</span>
+          </button>
+        </div>
+
+        <!-- File Upload Drop Box for Job Description -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div id="job-file-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-950/60 flex flex-col items-center justify-center group">
+            <i data-lucide="upload-cloud" class="w-8 h-8 text-indigo-400 mb-1.5 group-hover:scale-110 transition"></i>
+            <p class="text-xs font-semibold text-slate-200">Drop Job Posting File (.pdf, .docx, .txt)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Or tap to browse computer</p>
+            <input type="file" id="job-file-input" accept=".pdf,.docx,.doc,.txt" class="hidden">
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Or Paste Raw Job Description Text</label>
+            <div class="flex gap-2">
+              <textarea id="raw-job-text" rows="3" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:border-indigo-500 outline-none custom-scrollbar" placeholder="Paste full JD text here..."></textarea>
+              <button id="btn-parse-job-text" class="px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 active:scale-95">
+                Extract Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Job Profile Form Fields -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- Left 2 Cols: Form Info & Gates -->
+        <div class="lg:col-span-2 space-y-4">
+          
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5">
+            <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5 pb-2 border-b border-slate-800">
+              <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
+              <span>Role Specifications</span>
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Job Title</label>
+                <input type="text" id="job-title-input" value="Senior Project Manager" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Department / Business Unit</label>
+                <input type="text" id="job-dept-input" value="Operations &amp; Delivery" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Location / Workplace Type</label>
+                <input type="text" id="job-location-input" value="Hybrid / Remote Friendly" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-500 outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Minimum Experience</label>
+                <div class="flex items-center space-x-2">
+                  <input type="number" id="job-minexp-input" value="3" min="0" max="30" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-indigo-500">
+                  <span class="text-xs text-slate-400 font-medium">Years</span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Education Level</label>
+                <input type="text" id="job-edu-input" value="Bachelor's Degree or Equivalent" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-500 outline-none">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Core Responsibilities &amp; Overview</label>
+              <textarea id="job-desc-input" rows="4" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-500 outline-none custom-scrollbar">We are seeking a seasoned Project Manager with demonstrated experience leading cross-functional teams, driving Agile sprints, managing budgets over $500k, and utilizing Jira, Asana, and risk-management frameworks. Responsible for delivery timelines, stakeholder communication, and project reporting.</textarea>
+            </div>
+          </div>
+
+          <!-- Hard Gates Box (Critical Screening Criteria) -->
+          <div class="bg-rose-950/20 border border-rose-900/40 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-rose-900/40">
+              <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <h3 class="text-xs sm:text-sm font-bold text-rose-300">Mandatory Hard Gates (Zero-Tolerance)</h3>
+              </div>
+              <span class="text-[10px] text-rose-400 font-semibold bg-rose-950 border border-rose-800 px-2 py-0.5 rounded-full">100% Required to Pass</span>
+            </div>
+            <p class="text-[11px] text-rose-300/80">Candidates missing any of these items are immediately tagged as <strong class="text-rose-200">Disqualified</strong>.</p>
+            
+            <div id="job-gates-container" class="space-y-2">
+              <!-- Dynamically populated tags -->
+            </div>
+
+            <div class="flex gap-2 pt-1">
+              <input type="text" id="input-custom-gate" placeholder="e.g. Work Authorization, PMP Certification, 4+ yrs experience" class="flex-1 px-3 py-1.5 text-xs bg-slate-950 border border-rose-900/60 rounded-xl text-slate-200 placeholder-rose-400/40 focus:border-rose-500 outline-none">
+              <button id="btn-add-gate-field" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition active:scale-95 shrink-0 flex items-center space-x-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Add Gate</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Col: Preferred Skills & Scoring Rules -->
+        <div class="space-y-4">
+          <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5">
+                <i data-lucide="check-square" class="w-4 h-4 text-indigo-400"></i>
+                <span>Preferred Skills &amp; Keywords</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Weighted Match</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Used to calculate candidate score rank after passing all hard gates.</p>
+
+            <div id="job-skills-container" class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar p-1">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div class="flex gap-2">
+              <input type="text" id="input-custom-skill" placeholder="e.g. Jira, Scrum, Budgeting" class="flex-1 px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:border-indigo-500 outline-none">
+              <button id="btn-add-skill-field" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition active:scale-95 shrink-0 flex items-center space-x-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Add</span>
+              </button>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 space-y-3">
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 font-medium mb-1">
+                  <span>Top Match Threshold</span>
+                  <span id="label-threshold-score" class="text-emerald-400 font-bold font-mono">75%</span>
+                </div>
+                <input type="range" id="slider-threshold" min="50" max="95" value="75" class="w-full accent-emerald-500 cursor-pointer">
+              </div>
+
+              <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                <span class="text-[11px] font-bold text-indigo-400 block">Screening Logic Note:</span>
+                <p class="text-[10px] text-slate-400 leading-relaxed">
+                  SAT parses applicant resumes, strictly tests each against hard gates (100% required), then tallies weighted preferred keywords and years of experience to calculate score percentages.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: CANDIDATES & RESUMES -->
+    <section id="view-candidates" class="app-view hidden space-y-5">
+      
+      <!-- Ingest Section: Batch Upload / Spreadsheet Paste -->
+      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2 mb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+              <i data-lucide="files" class="w-5 h-5 text-indigo-400"></i>
+              <span>Batch Resume Ingestion (Supports 300+ Resumes)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Drag and drop your entire batch of resumes at once. Evaluated completely in your browser without API limits.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button id="btn-toggle-csv-box" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition">
+              Paste Spreadsheet Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Multi-File Dropzone -->
+        <div id="resume-batch-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition bg-slate-950/50 flex flex-col items-center justify-center group">
+          <div class="w-12 h-12 bg-indigo-950/60 text-indigo-400 border border-indigo-800/50 rounded-2xl flex items-center justify-center mb-2.5 group-hover:scale-105 transition">
+            <i data-lucide="hard-drive-upload" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xs sm:text-sm font-semibold text-white">Select or drop all 300 resumes here</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Accepts PDF, Word (.docx), or TXT. Drop an entire folder or multiple selected files.</p>
+          <span class="mt-3 px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 rounded-full text-[10px] font-medium font-mono">
+            Zero File Size Restrictions • In-Memory Parsing
+          </span>
+          <input type="file" id="resume-batch-input" multiple accept=".pdf,.docx,.txt" class="hidden">
+        </div>
+
+        <!-- Ingestion Progress Bar -->
+        <div id="batch-progress-box" class="hidden mt-4 bg-slate-950 rounded-xl p-3.5 border border-slate-800">
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-300 mb-1.5">
+            <span id="batch-progress-text" class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+              <span>Parsing resumes locally...</span>
+            </span>
+            <span id="batch-progress-percent" class="text-indigo-400 font-mono">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div id="batch-progress-fill" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2 rounded-full transition-all duration-150" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Collapsible CSV Paste Box -->
+        <div id="csv-paste-container" class="hidden mt-4 pt-4 border-t border-slate-800 space-y-2">
+          <label class="block text-xs font-semibold text-slate-300">Bulk Spreadsheet Rows (LinkedIn, Indeed, or Forms Export)</label>
+          <textarea id="csv-input-text" rows="3" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 placeholder-slate-600 focus:border-indigo-500 outline-none custom-scrollbar" placeholder="Format: Full Name, Email, Years Experience, Skills / Bio snippet..."></textarea>
+          <div class="flex justify-end">
+            <button id="btn-ingest-csv-rows" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition active:scale-95">Ingest Rows</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Candidate Screening Results & Pipeline Management -->
+      <div class="space-y-4">
+        
+        <!-- Filter & Search Toolbar -->
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          
+          <div class="flex items-center space-x-2 flex-1">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+              <input type="text" id="candidate-search-input" placeholder="Search name, skills, keywords..." class="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 outline-none transition">
+            </div>
+            
+            <select id="candidate-filter-select" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-300 outline-none">
+              <option value="all">All Applicants</option>
+              <option value="top">Top Picks (&ge;75%)</option>
+              <option value="qualified">Passed Hard Gates</option>
+              <option value="disqualified">Disqualified Only</option>
+              <option value="shortlisted">Shortlisted</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end space-x-2 shrink-0">
+            <!-- Blind PII Screening Switch -->
+            <label class="inline-flex items-center cursor-pointer bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300">
+              <input type="checkbox" id="toggle-blind-pii" class="sr-only peer">
+              <div class="relative w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600"></div>
+              <span class="ml-2 text-[11px] text-slate-300 font-semibold">Blind PII</span>
+            </label>
+
+            <button id="btn-export-candidates-csv" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5 active:scale-95">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Export CSV</span>
+            </button>
+
+            <button id="btn-clear-pipeline-all" class="px-3 py-1.5 text-rose-400 hover:bg-rose-950/40 border border-rose-900/50 rounded-xl text-xs font-semibold transition active:scale-95">
+              Clear All
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Mobile Card View -->
+        <div id="candidates-mobile-container" class="block md:hidden space-y-2.5">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Desktop Leaderboard Table View -->
+        <div class="hidden md:block bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                  <th class="py-3 px-4">Rank &amp; Candidate</th>
+                  <th class="py-3 px-3">Gate Status</th>
+                  <th class="py-3 px-3 text-center">Match Score</th>
+                  <th class="py-3 px-3">Experience</th>
+                  <th class="py-3 px-4">Key Matched Skills</th>
+                  <th class="py-3 px-4">Gate Failures / Gaps</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="candidates-table-body" class="divide-y divide-slate-800 text-slate-200">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- VIEW 4: ANALYTICS & REPORTING -->
+    <section id="view-analytics" class="app-view hidden space-y-5">
+      
+      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+              <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i>
+              <span>Screening Analytics &amp; Pipeline Intelligence</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time statistics on applicant distribution, gating drop-offs, and skill availability.</p>
+          </div>
+          <button onclick="exportAnalyticsReport()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5 active:scale-95 shrink-0">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Export Analytics Summary</span>
+          </button>
+        </div>
+
+        <!-- Visual Analytics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+          
+          <!-- Chart 1: Funnel Drop-off Bar Chart -->
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5">
+                <i data-lucide="filter" class="w-4 h-4 text-indigo-400"></i>
+                <span>Candidate Pipeline Funnel</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Conversion Progression</span>
+            </div>
+            <div class="relative h-60 w-full">
+              <canvas id="chart-funnel"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Gate Failure Breakdown (Pie/Doughnut) -->
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-rose-400"></i>
+                <span>Primary Disqualification Causes</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Hard Gate Breakdown</span>
+            </div>
+            <div class="relative h-60 w-full">
+              <canvas id="chart-disqualifications"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Skills Frequency Bar Chart -->
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 space-y-3 lg:col-span-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span>Applicant Skill Frequency Distribution</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Target Keywords Found in Pool</span>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="chart-skills"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 5: CANDIDATE APPLY PORTAL -->
+    <section id="view-portal" class="app-view hidden space-y-5">
+      <div class="max-w-2xl mx-auto bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 sm:p-7 shadow-xl">
+        <div class="border-b border-slate-800 pb-3.5 mb-4">
+          <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800 mb-2">
+            Direct Candidate Self-Screening Portal
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-white" id="portal-role-title">Senior Project Manager</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Share this direct intake link with candidates so they self-certify requirements and screen themselves upon submission.</p>
+        </div>
+
+        <form id="portal-application-form" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Full Name *</label>
+              <input type="text" id="portal-input-name" required placeholder="Alex Morgan" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Email Address *</label>
+              <input type="email" id="portal-input-email" required placeholder="alex@example.com" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Total Years of Relevant Experience *</label>
+              <input type="number" id="portal-input-exp" min="0" max="40" required placeholder="5" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Phone Number</label>
+              <input type="tel" id="portal-input-phone" placeholder="+1 (555) 019-2834" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none">
+            </div>
+          </div>
+
+          <!-- Dynamic Gate Acknowledgement Checkboxes -->
+          <div class="bg-indigo-950/30 rounded-xl p-3.5 border border-indigo-800/40">
+            <h4 class="font-bold text-indigo-300 uppercase tracking-wider mb-2">Mandatory Requirement Self-Certification</h4>
+            <div id="portal-gates-checkbox-group" class="space-y-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Document Upload Dropzones (Resume & Optional Cover Letter) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Resume File (.pdf, .docx, .txt) *</label>
+              <div id="portal-resume-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-3 text-center cursor-pointer transition bg-slate-950 flex flex-col items-center justify-center">
+                <i data-lucide="file-up" class="w-5 h-5 text-indigo-400 mb-1"></i>
+                <p id="portal-resume-filename" class="text-[11px] font-semibold text-slate-200 truncate max-w-full">Upload Resume File</p>
+                <p class="text-[10px] text-slate-400">PDF, Word, or TXT</p>
+                <input type="file" id="portal-resume-file-input" accept=".pdf,.docx,.txt" class="hidden">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Cover Letter (Optional)</label>
+              <div id="portal-letter-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-3 text-center cursor-pointer transition bg-slate-950 flex flex-col items-center justify-center">
+                <i data-lucide="file-text" class="w-5 h-5 text-indigo-400 mb-1"></i>
+                <p id="portal-letter-filename" class="text-[11px] font-semibold text-slate-200 truncate max-w-full">Upload Cover Letter</p>
+                <p class="text-[10px] text-slate-400">PDF, Word, or TXT</p>
+                <input type="file" id="portal-letter-file-input" accept=".pdf,.docx,.txt" class="hidden">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block font-semibold text-slate-300">Resume / Profile Text (Auto-extracted or paste) *</label>
+              <span id="portal-extract-indicator" class="text-[10px] text-emerald-400 hidden flex items-center space-x-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>Extracted from file</span>
+              </span>
+            </div>
+            <textarea id="portal-input-resume-text" rows="5" required placeholder="Upload your resume above or paste your resume and bio details here..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none custom-scrollbar"></textarea>
+          </div>
+
+          <div id="portal-letter-preview-box" class="hidden">
+            <label class="block font-semibold text-slate-300 mb-1">Cover Letter Text</label>
+            <textarea id="portal-input-letter-text" rows="3" placeholder="Cover letter text excerpt..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:border-indigo-500 outline-none custom-scrollbar"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/30 active:scale-95">
+            Submit Application
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto py-5 border-t border-slate-800/80 text-center text-xs text-slate-500">
+    Powered by Classic Stu Technology
+  </footer>
+
+  <!-- Candidate Deep Inspection Modal -->
+  <div id="candidate-inspection-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-start justify-between bg-slate-900/60">
+        <div class="min-w-0 pr-3">
+          <div class="flex items-center space-x-2">
+            <h3 id="inspect-modal-name" class="text-base sm:text-lg font-bold text-white truncate">Candidate Name</h3>
+            <span id="inspect-modal-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0">Passed</span>
+          </div>
+          <p id="inspect-modal-sub" class="text-xs text-slate-400 mt-0.5 truncate">email@example.com • 5 Years Exp</p>
+        </div>
+        <button id="btn-close-inspect-modal" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 custom-scrollbar text-xs">
+        
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 text-[10px] font-semibold uppercase">MATCH SCORE</span>
+            <div id="inspect-modal-score" class="text-xl sm:text-2xl font-extrabold text-indigo-400 font-mono mt-0.5">88%</div>
+          </div>
+          <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 text-[10px] font-semibold uppercase">HARD GATES</span>
+            <div id="inspect-modal-gates" class="text-xs font-bold text-emerald-400 mt-1">Meets All</div>
+          </div>
+          <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 text-[10px] font-semibold uppercase">STATUS</span>
+            <div id="inspect-modal-stage" class="text-xs font-bold text-slate-200 mt-1 truncate">Under Review</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="bg-emerald-950/20 border border-emerald-900/40 rounded-xl p-3">
+            <h4 class="font-bold text-emerald-300 mb-1.5 flex items-center space-x-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Matched Preferred Skills</span>
+            </h4>
+            <div id="inspect-modal-matched-skills" class="flex flex-wrap gap-1"></div>
+          </div>
+
+          <div class="bg-rose-950/20 border border-rose-900/40 rounded-xl p-3">
+            <h4 class="font-bold text-rose-300 mb-1.5 flex items-center space-x-1.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>Gate Failures &amp; Skill Gaps</span>
+            </h4>
+            <div id="inspect-modal-missed-skills" class="flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Interview Questions -->
+        <div class="bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-3 sm:p-4">
+          <h4 class="font-bold text-indigo-300 flex items-center space-x-1.5 mb-2">
+            <i data-lucide="message-square" class="w-4 h-4 text-indigo-400"></i>
+            <span>Tailored Interview Questions</span>
+          </h4>
+          <div id="inspect-modal-questions" class="space-y-1.5 text-slate-300 text-xs"></div>
+        </div>
+
+        <!-- Raw Resume Text -->
+        <div>
+          <h4 class="font-bold text-slate-300 mb-1">Resume Text Excerpt</h4>
+          <pre id="inspect-modal-raw-resume" class="bg-slate-950 text-slate-300 p-3 rounded-xl text-[11px] font-mono whitespace-pre-wrap max-h-36 overflow-y-auto custom-scrollbar border border-slate-800"></pre>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-900 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center space-x-2">
+          <button id="btn-modal-action-shortlist" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold text-xs transition flex items-center space-x-1 active:scale-95">
+            <i data-lucide="star" class="w-3.5 h-3.5"></i>
+            <span>Shortlist</span>
+          </button>
+          <button id="btn-modal-action-reject" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-semibold text-xs transition flex items-center space-x-1 active:scale-95">
+            <i data-lucide="user-x" class="w-3.5 h-3.5"></i>
+            <span>Reject</span>
+          </button>
+        </div>
+        <button id="btn-modal-copy-email" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-lg font-semibold text-xs transition flex items-center space-x-1.5 active:scale-95">
+          <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+          <span>Copy Invite Email</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Settings & Security Modal -->
+  <div id="settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden">
+      
+      <div class="px-4 py-3.5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Settings &amp; Security</h3>
+        </div>
+        <button id="btn-close-settings-modal" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar text-xs">
+        
+        <!-- Sample Pipeline Demo Loader -->
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <h4 class="text-xs font-bold text-white">Sample Candidate Pipeline</h4>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Load 12 sample resumes to preview filtering, gates, and rankings.</p>
+          </div>
+          <button id="btn-modal-load-demo" type="button" class="px-3 py-1.5 text-xs font-semibold text-indigo-200 bg-indigo-950 hover:bg-indigo-900 border border-indigo-700/60 rounded-lg transition shrink-0 active:scale-95 shadow-sm">
+            Load Demo
+          </button>
+        </div>
+
+        <!-- Recruiter Authorization Gate Switch -->
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <h4 class="text-xs font-bold text-white">Recruiter Login &amp; Authorization</h4>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">Require a PIN before viewing candidate contact details.</p>
+            </div>
+            
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input type="checkbox" id="toggle-require-auth-gate" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <div id="auth-gate-subpanel" class="hidden pt-2.5 border-t border-slate-800 space-y-2.5">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Recruiter ID</label>
+                <input type="text" id="sec-user-input" value="recruiter@company.internal" class="w-full px-2.5 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1">Passcode / PIN</label>
+                <input type="password" id="sec-pass-input" value="talent2026" class="w-full px-2.5 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none">
+              </div>
+            </div>
+            <button id="btn-lock-pipeline-now" type="button" class="w-full py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-semibold transition active:scale-95">Lock Pipeline Immediately</button>
+          </div>
+        </div>
+
+        <!-- RAM Privacy Sandbox Info & Purge -->
+        <div class="bg-emerald-950/20 border border-emerald-900/40 p-3 rounded-xl space-y-2">
+          <div class="flex items-center space-x-1.5 text-xs font-bold text-emerald-300">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Client-Side Data Isolation</span>
+          </div>
+          <p class="text-[11px] text-emerald-200/80 leading-relaxed">
+            All candidate resumes and files are stored strictly inside your browser's local RAM. No candidate records are transmitted to third-party databases.
+          </p>
+          <div class="pt-1 flex items-center justify-between border-t border-emerald-900/30">
+            <span class="text-[10px] text-slate-400">Clear RAM memory:</span>
+            <button id="btn-purge-ram-memory" type="button" class="px-2 py-1 bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-900/60 rounded-lg text-[11px] font-semibold transition active:scale-95">
+              Purge Memory
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-900 flex justify-end">
+        <button id="btn-save-settings-modal" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition active:scale-95">
+          Save Settings
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Auth Lock Screen Overlay -->
+  <div id="auth-lock-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-lg z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-xs w-full p-5 text-center space-y-3">
+      <div class="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto">
+        <i data-lucide="lock" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-white">Pipeline Locked</h3>
+        <p class="text-[11px] text-slate-400">Recruiter passcode required to view candidates.</p>
+      </div>
+      <div class="space-y-2 text-left">
+        <input type="password" id="lock-passcode-input" placeholder="Enter PIN (Default: talent2026)" class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-indigo-500">
+        <p id="lock-error-text" class="text-[11px] text-rose-400 font-semibold hidden text-center">Incorrect Passcode</p>
+      </div>
+      <button id="btn-unlock-pipeline-btn" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Unlock</button>
+      <button id="btn-bypass-to-open" class="text-[11px] text-slate-400 hover:text-slate-200 underline">Switch to Open Mode</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="app-toast" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 bg-slate-900 text-white px-3.5 py-2.5 rounded-xl shadow-2xl border border-slate-800 text-xs font-medium flex items-center space-x-2 transition-all transform translate-y-20 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+    <span id="app-toast-text">Success message</span>
+  </div>
+
+  <script>
+    // Global Application State
+    const AppState = {
+      activeView: 'view-home',
+      jobProfile: {
+        title: 'Senior Project Manager',
+        department: 'Operations & Delivery',
+        location: 'Hybrid / Remote Friendly',
+        minExperience: 3,
+        education: "Bachelor's Degree or Equivalent",
+        description: 'Lead Agile sprints, manage budgets over $500k, utilize Jira, Asana, and risk-management frameworks. Responsible for delivery timelines, stakeholder communication, and project reporting.',
+        hardGates: [
+          'Work Authorization in Country',
+          '3+ Years Project Management',
+          'PMP or Agile Scrum Master Certification'
+        ],
+        preferredSkills: [
+          'Jira', 'Agile', 'Scrum', 'Budgeting', 'Stakeholder Management', 
+          'Risk Assessment', 'Asana', 'Sprint Planning', 'Roadmapping', 'KPI Tracking'
+        ],
+        topThreshold: 75
+      },
+      candidates: [],
+      selectedCandidate: null,
+      filterStatus: 'all',
+      searchQuery: '',
+      blindScreening: false,
+      security: {
+        requireAuth: false,
+        isAuthenticated: true,
+        recruiterUser: 'recruiter@company.internal',
+        recruiterPass: 'talent2026'
+      },
+      charts: {
+        funnel: null,
+        disqualifications: null,
+        skills: null
+      }
+    };
+
+    // Realistic Demo Pipeline Dataset
+    const DEMO_DATASET = [
+      {
+        id: 'c1',
+        name: 'Samantha Vance',
+        email: 'samantha.vance@workmail.com',
+        phone: '+1 (555) 234-9812',
+        experience: 7,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Samantha Vance, PMP, CSM. 7 years experience delivering enterprise software projects. Proficient in Jira, Agile Scrum, Sprint Planning, Budgeting ($1.2M managed), Stakeholder Management, and Asana. Led 14 engineers across global timezones.`
+      },
+      {
+        id: 'c2',
+        name: 'Carlos Mendez',
+        email: 'carlos.m@example.com',
+        phone: '+1 (555) 876-1290',
+        experience: 5,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Carlos Mendez. Certified Scrum Master (CSM) with 5 years managing web application launches. Strong grasp of Jira, Sprint Planning, Agile methodology, KPI Tracking, Roadmapping, and cross-functional team alignment.`
+      },
+      {
+        id: 'c3',
+        name: 'Jordan Lee',
+        email: 'jordan.lee@domain.net',
+        phone: '+1 (555) 431-7721',
+        experience: 1,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': false,
+          'PMP or Agile Scrum Master Certification': false
+        },
+        rawText: `Jordan Lee. Associate Project Coordinator with 1 year experience assisting in Jira tracking and meeting notes. Eager learner with recent business bachelor's degree.`
+      },
+      {
+        id: 'c4',
+        name: 'Priya Sharma',
+        email: 'priya.sharma@fintech.io',
+        phone: '+1 (555) 902-3341',
+        experience: 9,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Priya Sharma, PMP certified. 9 years directing high-stakes programs. Specialized in Risk Assessment, Budgeting ($3M+ portfolios), Roadmapping, KPI Tracking, and executive stakeholder management in fintech.`
+      },
+      {
+        id: 'c5',
+        name: 'David Becker',
+        email: 'd.becker@provider.net',
+        phone: '+1 (555) 671-9988',
+        experience: 4,
+        hardGatesMatched: {
+          'Work Authorization in Country': false,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `David Becker, Agile Practitioner. 4 years software project management. Skilled in Jira, Scrum, and sprint planning. Note: Needs visa sponsorship / work authorization transfer.`
+      },
+      {
+        id: 'c6',
+        name: 'Elena Rostova',
+        email: 'elena.rostova@cloud.com',
+        phone: '+1 (555) 321-6549',
+        experience: 6,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Elena Rostova, PMP. 6 years managing digital transformation. Expert in Asana, Jira, Risk Assessment, Sprint Planning, and Budgeting for logistics firms.`
+      },
+      {
+        id: 'c7',
+        name: 'Marcus Brody',
+        email: 'mbrody@inbox.com',
+        phone: '+1 (555) 443-8876',
+        experience: 2,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': false,
+          'PMP or Agile Scrum Master Certification': false
+        },
+        rawText: `Marcus Brody. Graphic designer transitioning to project management with 2 years agency experience. Proficient in Trello and basic Asana tasks.`
+      },
+      {
+        id: 'c8',
+        name: 'Aisha Al-Mansoor',
+        email: 'aisha.m@techreach.io',
+        phone: '+1 (555) 789-0123',
+        experience: 8,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Aisha Al-Mansoor, Senior Project Director. PMP, PMI-ACP certified. 8 years leading healthcare IT rollouts. Deep expertise in Risk Assessment, Jira, Scrum, Budgeting, and Executive Stakeholder Management.`
+      },
+      {
+        id: 'c9',
+        name: 'Thomas Wu',
+        email: 'thomas.wu@globalcorp.com',
+        phone: '+1 (555) 654-7890',
+        experience: 5,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': false
+        },
+        rawText: `Thomas Wu. 5 years tech lead and interim delivery manager. Highly adept in Agile and Scrum practices, Sprint Planning, Jira, and Asana. Looking to take formal PMP exam next year.`
+      },
+      {
+        id: 'c10',
+        name: 'Jessica Reynolds',
+        email: 'jess.reynolds@venturehub.com',
+        phone: '+1 (555) 987-1234',
+        experience: 10,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Jessica Reynolds, PMP, CSM. 10 years enterprise program management. Handled $4M budgets, executive stakeholder management, KPI tracking, and Agile transformation across multiple delivery teams.`
+      },
+      {
+        id: 'c11',
+        name: 'Liam Vance-O\'Connor',
+        email: 'liam.vo@startupmail.com',
+        phone: '+1 (555) 345-6789',
+        experience: 3,
+        hardGatesMatched: {
+          'Work Authorization in Country': false,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': false
+        },
+        rawText: `Liam Vance-O'Connor. 3 years operations and project coordinator. Experienced in Asana and Jira. Requires sponsorship for work visa.`
+      },
+      {
+        id: 'c12',
+        name: 'Nadia Petrov',
+        email: 'nadia.petrov@network.org',
+        phone: '+1 (555) 876-5432',
+        experience: 6,
+        hardGatesMatched: {
+          'Work Authorization in Country': true,
+          '3+ Years Project Management': true,
+          'PMP or Agile Scrum Master Certification': true
+        },
+        rawText: `Nadia Petrov, Agile Scrum Master. 6 years guiding engineering teams. Skilled in sprint planning, risk assessment, roadmapping, Jira, and budget monitoring.`
+      }
+    ];
+
+    // Navigation Handler
+    function navigateTo(viewId) {
+      document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
+      AppState.activeView = viewId;
+
+      // Update Nav Buttons (Desktop)
+      document.querySelectorAll('.nav-link').forEach(btn => {
+        if (btn.getAttribute('data-view') === viewId) {
+          btn.className = 'nav-link px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 shadow-sm transition flex items-center space-x-1.5';
+        } else {
+          btn.className = 'nav-link px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center space-x-1.5';
+        }
+      });
+
+      // Update Mobile Nav Buttons
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-view') === viewId) {
+          btn.className = 'mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 shrink-0';
+        } else {
+          btn.className = 'mobile-nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 shrink-0';
+        }
+      });
+
+      if (viewId === 'view-analytics') {
+        renderAnalyticsCharts();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function extractTextFromFile(file) {
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith('.pdf')) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          const pdf = await loadingTask.promise;
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            fullText += content.items.map(it => it.str).join(' ') + '\n';
+          }
+          return fullText;
+        } catch (e) {
+          console.error('PDF parsing error', e);
+          return '';
+        }
+      } else if (fileName.endsWith('.docx') && window.mammoth) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          return result.value || '';
+        } catch (e) {
+          console.error('Word parsing error', e);
+          return '';
+        }
+      } else {
+        return await file.text();
+      }
+    }
+
+    // Intelligent Job Posting Text Parser
+    function parseJobPostingText(rawText) {
+      const text = rawText || '';
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+      // Detect Title
+      let detectedTitle = 'Project Manager';
+      for (const line of lines.slice(0, 8)) {
+        if (/manager|engineer|lead|director|developer|designer|specialist|analyst|coordinator/i.test(line)) {
+          detectedTitle = line.replace(/job description|title:|position:/i, '').trim();
+          break;
+        }
+      }
+
+      // Detect Experience
+      let exp = 3;
+      const expMatch = text.match(/(\d+)\+?\s*(years|yrs|year|yr)\s*(of)?\s*(experience|exp)?/i);
+      if (expMatch && expMatch[1]) {
+        exp = parseInt(expMatch[1], 10);
+      }
+
+      // Detect Hard Gates
+      const gates = [];
+      if (/work authorization|citizen|authorized to work|eligible to work/i.test(text)) {
+        gates.push('Work Authorization in Country');
+      } else {
+        gates.push('Work Authorization in Country');
+      }
+
+      gates.push(`${exp}+ Years Professional Experience`);
+
+      if (/pmp|project management professional/i.test(text)) {
+        gates.push('PMP Certification');
+      } else if (/scrum|csm|agile certification/i.test(text)) {
+        gates.push('Agile or Scrum Certification');
+      }
+
+      // Detect Keywords
+      const knownKeywords = [
+        'Jira', 'Agile', 'Scrum', 'Budgeting', 'Stakeholder Management', 
+        'Risk Assessment', 'Asana', 'Sprint Planning', 'Roadmapping', 'KPI Tracking',
+        'Python', 'SQL', 'AWS', 'Communication', 'Leadership', 'CI/CD', 'Tableau'
+      ];
+      const matchedKeywords = knownKeywords.filter(k => new RegExp(`\\b${k}\\b`, 'i').test(text));
+      const skills = matchedKeywords.length >= 3 ? matchedKeywords : AppState.jobProfile.preferredSkills;
+
+      return {
+        title: detectedTitle,
+        department: 'Operations & Delivery',
+        location: 'Hybrid / Remote Friendly',
+        minExperience: exp,
+        education: "Bachelor's Degree or Equivalent",
+        description: text.slice(0, 600) || AppState.jobProfile.description,
+        hardGates: gates,
+        preferredSkills: skills
+      };
+    }
+
+    function evaluateCandidate(candidate) {
+      const text = ((candidate.rawText || '') + ' ' + (candidate.name || '')).toLowerCase();
+      const gates = AppState.jobProfile.hardGates;
+      const hardGatesMatched = {};
+      let passedAllGates = true;
+      const missedGates = [];
+
+      gates.forEach(gate => {
+        let isMatched = false;
+        const gateLower = gate.toLowerCase();
+
+        if (gateLower.includes('auth') || gateLower.includes('citizen') || gateLower.includes('permit') || gateLower.includes('visa')) {
+          if (candidate.hardGatesMatched && candidate.hardGatesMatched[gate] !== undefined) {
+            isMatched = candidate.hardGatesMatched[gate];
+          } else {
+            const requiresSponsorship = text.includes('sponsorship required') || text.includes('requires visa') || text.includes('need sponsorship');
+            isMatched = !requiresSponsorship;
+          }
+        } else if (gateLower.includes('year') || gateLower.includes('exp')) {
+          const matchedNum = gate.match(/\d+/);
+          const reqYears = matchedNum ? parseInt(matchedNum[0], 10) : AppState.jobProfile.minExperience;
+          isMatched = candidate.experience >= reqYears;
+        } else {
+          if (candidate.hardGatesMatched && candidate.hardGatesMatched[gate] !== undefined) {
+            isMatched = candidate.hardGatesMatched[gate];
+          } else {
+            const terms = gateLower.split(/or|\//).map(t => t.trim());
+            isMatched = terms.some(t => text.includes(t));
+          }
+        }
+
+        hardGatesMatched[gate] = isMatched;
+        if (!isMatched) {
+          passedAllGates = false;
+          missedGates.push(gate);
+        }
+      });
+
+      // Preferred Skills Match
+      const matchedSkills = [];
+      const missedSkills = [];
+      AppState.jobProfile.preferredSkills.forEach(skill => {
+        if (text.includes(skill.toLowerCase())) {
+          matchedSkills.push(skill);
+        } else {
+          missedSkills.push(skill);
+        }
+      });
+
+      const skillMatchRatio = AppState.jobProfile.preferredSkills.length > 0 
+        ? matchedSkills.length / AppState.jobProfile.preferredSkills.length 
+        : 1;
+
+      const expPoints = Math.min(25, candidate.experience * 3);
+      let calculatedScore = Math.min(100, Math.round((skillMatchRatio * 75) + expPoints));
+
+      if (!passedAllGates) {
+        calculatedScore = Math.min(calculatedScore, 42);
+      }
+
+      return {
+        ...candidate,
+        hardGatesMatched,
+        passedAllGates,
+        missedGates,
+        matchedSkills,
+        missedSkills,
+        score: calculatedScore,
+        isTopTier: passedAllGates && calculatedScore >= AppState.jobProfile.topThreshold
+      };
+    }
+
+    function reevaluateAllCandidates() {
+      AppState.candidates = AppState.candidates.map(c => evaluateCandidate(c));
+      AppState.candidates.sort((a, b) => {
+        if (a.passedAllGates && !b.passedAllGates) return -1;
+        if (!a.passedAllGates && b.passedAllGates) return 1;
+        return b.score - a.score;
+      });
+      renderHomeStats();
+      renderCandidateList();
+      if (AppState.activeView === 'view-analytics') {
+        renderAnalyticsCharts();
+      }
+    }
+
+    function renderJobCriteriaUI() {
+      // Inputs
+      document.getElementById('job-title-input').value = AppState.jobProfile.title;
+      document.getElementById('job-dept-input').value = AppState.jobProfile.department;
+      document.getElementById('job-location-input').value = AppState.jobProfile.location;
+      document.getElementById('job-minexp-input').value = AppState.jobProfile.minExperience;
+      document.getElementById('job-edu-input').value = AppState.jobProfile.education;
+      document.getElementById('job-desc-input').value = AppState.jobProfile.description;
+      document.getElementById('portal-role-title').textContent = AppState.jobProfile.title;
+      document.getElementById('home-stat-job-title').textContent = AppState.jobProfile.title;
+      document.getElementById('home-stat-dept').textContent = AppState.jobProfile.department;
+
+      // Hard Gates
+      const gatesContainer = document.getElementById('job-gates-container');
+      gatesContainer.innerHTML = AppState.jobProfile.hardGates.map((gate, idx) => `
+        <div class="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-xl border border-rose-900/40 text-xs text-rose-200">
+          <div class="flex items-center space-x-2">
+            <span class="text-rose-400 font-bold">&times;</span>
+            <span class="font-medium">${gate}</span>
+          </div>
+          <button onclick="removeHardGate(${idx})" class="text-rose-400 hover:text-rose-200 font-bold ml-2 text-sm">&times;</button>
+        </div>
+      `).join('');
+
+      // Preferred Skills
+      const skillsContainer = document.getElementById('job-skills-container');
+      skillsContainer.innerHTML = AppState.jobProfile.preferredSkills.map((skill, idx) => `
+        <span class="inline-flex items-center px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs font-medium text-slate-200">
+          ${skill}
+          <button onclick="removeSkill(${idx})" class="ml-1.5 text-slate-400 hover:text-rose-400 font-bold">&times;</button>
+        </span>
+      `).join('');
+
+      // Portal Gate Checkboxes
+      const portalCheckboxes = document.getElementById('portal-gates-checkbox-group');
+      portalCheckboxes.innerHTML = AppState.jobProfile.hardGates.map((gate) => `
+        <label class="flex items-start space-x-2 text-xs text-indigo-200 cursor-pointer">
+          <input type="checkbox" required class="mt-0.5 rounded border-indigo-700 text-indigo-600 focus:ring-indigo-500">
+          <span>I certify that I meet: <strong>${gate}</strong></span>
+        </label>
+      `).join('');
+    }
+
+    function renderHomeStats() {
+      const total = AppState.candidates.length;
+      const passed = AppState.candidates.filter(c => c.passedAllGates).length;
+      const disq = total - passed;
+      const topPicks = AppState.candidates.filter(c => c.isTopTier).length;
+      const shortlisted = AppState.candidates.filter(c => c.userStatus === 'shortlisted').length;
+      const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+      document.getElementById('home-stat-total').textContent = total;
+      document.getElementById('home-stat-passed').textContent = passed;
+      document.getElementById('home-stat-disqualified').textContent = disq;
+      document.getElementById('home-stat-pass-rate').textContent = `${passRate}% of pipeline`;
+
+      document.getElementById('nav-count-badge').textContent = total;
+      document.getElementById('mobile-nav-count-badge').textContent = total;
+
+      // Funnel preview
+      document.getElementById('funnel-count-1').textContent = total;
+      document.getElementById('funnel-count-2').textContent = passed;
+      document.getElementById('funnel-count-3').textContent = topPicks;
+      document.getElementById('funnel-count-4').textContent = shortlisted;
+
+      const p2 = total > 0 ? Math.round((passed / total) * 100) : 0;
+      const p3 = total > 0 ? Math.round((topPicks / total) * 100) : 0;
+      const p4 = total > 0 ? Math.round((shortlisted / total) * 100) : 0;
+
+      document.getElementById('funnel-bar-2').style.width = `${p2}%`;
+      document.getElementById('funnel-bar-3').style.width = `${p3}%`;
+      document.getElementById('funnel-bar-4').style.width = `${p4}%`;
+    }
+
+    function renderCandidateList() {
+      const filtered = AppState.candidates.filter(c => {
+        const matchesQuery = c.name.toLowerCase().includes(AppState.searchQuery.toLowerCase()) ||
+          c.matchedSkills.some(s => s.toLowerCase().includes(AppState.searchQuery.toLowerCase())) ||
+          c.rawText.toLowerCase().includes(AppState.searchQuery.toLowerCase());
+
+        if (!matchesQuery) return false;
+        if (AppState.filterStatus === 'top') return c.isTopTier;
+        if (AppState.filterStatus === 'qualified') return c.passedAllGates;
+        if (AppState.filterStatus === 'disqualified') return !c.passedAllGates;
+        if (AppState.filterStatus === 'shortlisted') return c.userStatus === 'shortlisted';
+        return true;
+      });
+
+      const mobileContainer = document.getElementById('candidates-mobile-container');
+      const tableBody = document.getElementById('candidates-table-body');
+
+      if (filtered.length === 0) {
+        const emptyHtml = `
+          <div class="py-12 text-center text-slate-400 bg-slate-900/60 rounded-2xl border border-slate-800 p-6">
+            <i data-lucide="inbox" class="w-8 h-8 text-slate-500 mx-auto mb-2"></i>
+            <p class="font-semibold text-slate-300 text-sm">No applicants found</p>
+            <p class="text-xs text-slate-500 mt-1">Batch drop resumes above or load demo data from Settings.</p>
+          </div>
+        `;
+        mobileContainer.innerHTML = emptyHtml;
+        tableBody.innerHTML = `<tr><td colspan="7">${emptyHtml}</td></tr>`;
+        lucide.createIcons();
+        return;
+      }
+
+      // Mobile cards
+      mobileContainer.innerHTML = filtered.map((c, idx) => {
+        const displayName = AppState.blindScreening ? `Candidate #${idx + 101}` : c.name;
+        const gateBadge = c.passedAllGates
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/50">Passed</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800/50">Disqualified</span>`;
+
+        const scoreColor = c.isTopTier ? 'text-emerald-400' : c.passedAllGates ? 'text-indigo-400' : 'text-slate-500';
+
+        return `
+          <div onclick="inspectCandidate('${c.id}')" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md active:bg-slate-800 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-xs font-bold text-slate-500">#${idx + 1}</span>
+                  <h4 class="text-sm font-bold text-white truncate">${displayName}</h4>
+                  ${c.userStatus === 'shortlisted' ? '<span class="text-amber-400 text-xs">★</span>' : ''}
+                </div>
+                <p class="text-[11px] text-slate-400 truncate mt-0.5">${c.experience} yrs exp • ${AppState.blindScreening ? '[PII Redacted]' : c.email}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-base font-extrabold font-mono ${scoreColor}">${c.score}%</div>
+                <div class="mt-1">${gateBadge}</div>
+              </div>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-slate-800 flex flex-wrap gap-1 items-center">
+              ${c.matchedSkills.slice(0, 3).map(s => `<span class="bg-indigo-950/60 text-indigo-300 text-[10px] px-1.5 py-0.2 rounded border border-indigo-800/40">${s}</span>`).join('')}
+              ${c.missedGates.length > 0 ? `<span class="text-[10px] text-rose-400">Failed: ${c.missedGates[0]}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Desktop table
+      tableBody.innerHTML = filtered.map((c, idx) => {
+        const displayName = AppState.blindScreening ? `Candidate #${idx + 101}` : c.name;
+        const displayEmail = AppState.blindScreening ? `[PII Redacted]` : c.email;
+        const gateBadge = c.passedAllGates 
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800/50">Passed</span>`
+          : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-950 text-rose-400 border border-rose-800/50">Disqualified</span>`;
+
+        const scoreColor = c.isTopTier ? 'text-emerald-400 font-extrabold' : c.passedAllGates ? 'text-indigo-400 font-bold' : 'text-slate-500 font-semibold';
+        const matchedTags = c.matchedSkills.slice(0, 3).map(s => `<span class="bg-indigo-950/80 text-indigo-300 text-[10px] px-1.5 py-0.5 rounded border border-indigo-800/40">${s}</span>`).join(' ');
+        const missedTags = c.missedGates.length > 0
+          ? c.missedGates.map(g => `<span class="bg-rose-950/80 text-rose-300 text-[10px] px-1.5 py-0.5 rounded border border-rose-800/40">${g}</span>`).join(' ')
+          : `<span class="text-slate-500">&mdash;</span>`;
+
+        return `
+          <tr class="hover:bg-slate-800/50 transition cursor-pointer" onclick="inspectCandidate('${c.id}')">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-2.5">
+                <span class="w-6 h-6 rounded-full bg-slate-950 text-slate-400 font-bold text-xs flex items-center justify-center border border-slate-800">#${idx + 1}</span>
+                <div>
+                  <div class="font-bold text-white hover:text-indigo-400 flex items-center space-x-1.5">
+                    <span>${displayName}</span>
+                    ${c.userStatus === 'shortlisted' ? '<span class="text-amber-400 text-xs">★</span>' : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-400">${displayEmail}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-3">${gateBadge}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="text-sm font-mono ${scoreColor}">${c.score}%</span>
+            </td>
+            <td class="py-3 px-3 font-medium text-slate-300">${c.experience} yrs</td>
+            <td class="py-3 px-4">
+              <div class="flex flex-wrap gap-1">${matchedTags || '<span class="text-slate-500">&mdash;</span>'}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex flex-wrap gap-1">${missedTags}</div>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="event.stopPropagation(); inspectCandidate('${c.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
+                Inspect
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // Inspect Modal Trigger
+    function inspectCandidate(candidateId) {
+      if (AppState.security.requireAuth && !AppState.security.isAuthenticated) {
+        document.getElementById('auth-lock-overlay').classList.remove('hidden');
+        return;
+      }
+
+      const cand = AppState.candidates.find(c => c.id === candidateId);
+      if (!cand) return;
+      AppState.selectedCandidate = cand;
+
+      const displayName = AppState.blindScreening ? `Candidate #${cand.id.slice(-4)}` : cand.name;
+      const displaySub = AppState.blindScreening 
+        ? `[Contact Redacted] • ${cand.experience} Years Experience`
+        : `${cand.email} • ${cand.phone} • ${cand.experience} Years Experience`;
+
+      document.getElementById('inspect-modal-name').textContent = displayName;
+      document.getElementById('inspect-modal-sub').textContent = displaySub;
+      document.getElementById('inspect-modal-score').textContent = `${cand.score}%`;
+
+      const badge = document.getElementById('inspect-modal-badge');
+      if (cand.passedAllGates) {
+        badge.textContent = cand.isTopTier ? '★ Top Pick' : 'Qualified';
+        badge.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/50';
+      } else {
+        badge.textContent = 'Disqualified';
+        badge.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-950 text-rose-400 border border-rose-800/50';
+      }
+
+      document.getElementById('inspect-modal-gates').textContent = cand.passedAllGates ? 'Meets All' : 'Gate Failure';
+      document.getElementById('inspect-modal-gates').className = cand.passedAllGates ? 'text-xs font-bold text-emerald-400 mt-1' : 'text-xs font-bold text-rose-400 mt-1';
+      document.getElementById('inspect-modal-stage').textContent = cand.userStatus === 'shortlisted' ? '★ Shortlisted' : cand.userStatus === 'rejected' ? 'Marked Rejected' : 'Under Review';
+
+      // Matched skills
+      document.getElementById('inspect-modal-matched-skills').innerHTML = cand.matchedSkills.length > 0 
+        ? cand.matchedSkills.map(s => `<span class="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800/50 rounded text-xs">${s}</span>`).join('')
+        : `<span class="text-slate-500">None detected</span>`;
+
+      const missedList = [...cand.missedGates, ...cand.missedSkills.slice(0, 3)];
+      document.getElementById('inspect-modal-missed-skills').innerHTML = missedList.length > 0
+        ? missedList.map(s => `<span class="px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800/50 rounded text-xs">${s}</span>`).join('')
+        : `<span class="text-emerald-400 text-xs">All key requirements met</span>`;
+
+      // Tailored questions
+      const questions = [
+        `"Could you explain your role in managing delivery milestones for cross-functional teams?"`,
+        cand.experience >= 5
+          ? `"With ${cand.experience} years of background, how do you handle budget variances or timeline delays?"`
+          : `"How do you prioritize deliverables when multiple project stakeholders make competing requests?"`,
+        cand.matchedSkills.includes('Jira')
+          ? `"How do you configure Jira sprint velocity charts to forecast release dates?"`
+          : `"Which project tracking tools do you favor for day-to-day agile workflows?"`
+      ];
+      document.getElementById('inspect-modal-questions').innerHTML = questions.map(q => `<p class="text-slate-300">&bull; ${q}</p>`).join('');
+
+      // Raw text masking
+      if (AppState.blindScreening) {
+        const masked = cand.rawText
+          .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL REDACTED]')
+          .replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, '[PHONE REDACTED]');
+        document.getElementById('inspect-modal-raw-resume').textContent = masked;
+      } else {
+        document.getElementById('inspect-modal-raw-resume').textContent = cand.rawText;
+      }
+
+      document.getElementById('candidate-inspection-modal').classList.remove('hidden');
+    }
+
+    function renderAnalyticsCharts() {
+      if (!window.Chart) return;
+
+      const total = AppState.candidates.length;
+      const passed = AppState.candidates.filter(c => c.passedAllGates).length;
+      const topPicks = AppState.candidates.filter(c => c.isTopTier).length;
+      const shortlisted = AppState.candidates.filter(c => c.userStatus === 'shortlisted').length;
+
+      // 1. Funnel Chart
+      const funnelCtx = document.getElementById('chart-funnel').getContext('2d');
+      if (AppState.charts.funnel) AppState.charts.funnel.destroy();
+      AppState.charts.funnel = new Chart(funnelCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Total Ingested', 'Passed Hard Gates', 'High Match (>=75%)', 'Shortlisted'],
+          datasets: [{
+            label: 'Candidates',
+            data: [total, passed, topPicks, shortlisted],
+            backgroundColor: ['#64748b', '#f59e0b', '#10b981', '#6366f1'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+
+      // 2. Disqualifications Breakdown Chart
+      const disqCounts = {};
+      AppState.jobProfile.hardGates.forEach(g => { disqCounts[g] = 0; });
+      AppState.candidates.forEach(c => {
+        c.missedGates.forEach(g => {
+          disqCounts[g] = (disqCounts[g] || 0) + 1;
+        });
+      });
+
+      const disqCtx = document.getElementById('chart-disqualifications').getContext('2d');
+      if (AppState.charts.disqualifications) AppState.charts.disqualifications.destroy();
+      AppState.charts.disqualifications = new Chart(disqCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(disqCounts),
+          datasets: [{
+            data: Object.values(disqCounts),
+            backgroundColor: ['#f43f5e', '#fb923c', '#e11d48', '#facc15', '#a855f7'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } } }
+          }
+        }
+      });
+
+      // 3. Skill Frequency Chart
+      const skillCounts = {};
+      AppState.jobProfile.preferredSkills.forEach(s => { skillCounts[s] = 0; });
+      AppState.candidates.forEach(c => {
+        c.matchedSkills.forEach(s => {
+          skillCounts[s] = (skillCounts[s] || 0) + 1;
+        });
+      });
+
+      const skillsCtx = document.getElementById('chart-skills').getContext('2d');
+      if (AppState.charts.skills) AppState.charts.skills.destroy();
+      AppState.charts.skills = new Chart(skillsCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(skillCounts),
+          datasets: [{
+            label: 'Applicants with Skill',
+            data: Object.values(skillCounts),
+            backgroundColor: '#38bdf8',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 } }
+          }
+        }
+      });
+    }
+
+    function exportAnalyticsReport() {
+      const total = AppState.candidates.length;
+      const passed = AppState.candidates.filter(c => c.passedAllGates).length;
+      const csv = `Metric,Value\nRole Title,${AppState.jobProfile.title}\nTotal Candidates,${total}\nPassed Hard Gates,${passed}\nDisqualified,${total - passed}\nExport Date,${new Date().toISOString()}\n`;
+      downloadCSV(csv, 'sat_analytics_report.csv');
+    }
+
+    function downloadCSV(csvContent, filename) {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      triggerToast('Downloaded report!');
+    }
+
+    function triggerToast(message) {
+      const toast = document.getElementById('app-toast');
+      document.getElementById('app-toast-text').textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 3000);
+    }
+
+    function loadSampleDemoPipeline() {
+      AppState.candidates = DEMO_DATASET.map(c => ({ ...c, userStatus: 'pending' }));
+      reevaluateAllCandidates();
+      triggerToast('Loaded 12 sample resumes into pipeline!');
+      navigateTo('view-candidates');
+    }
+
+    window.removeHardGate = function(idx) {
+      AppState.jobProfile.hardGates.splice(idx, 1);
+      renderJobCriteriaUI();
+      reevaluateAllCandidates();
+    };
+
+    window.removeSkill = function(idx) {
+      AppState.jobProfile.preferredSkills.splice(idx, 1);
+      renderJobCriteriaUI();
+      reevaluateAllCandidates();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderJobCriteriaUI();
+      renderHomeStats();
+      renderCandidateList();
+
+      // Navigation listeners
+      document.querySelectorAll('.nav-link, .mobile-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const view = btn.getAttribute('data-view');
+          navigateTo(view);
+        });
+      });
+
+      // Slider threshold
+      document.getElementById('slider-threshold').addEventListener('input', (e) => {
+        AppState.jobProfile.topThreshold = parseInt(e.target.value, 10);
+        document.getElementById('label-threshold-score').textContent = `${e.target.value}%`;
+      });
+
+      // Save Job Profile
+      document.getElementById('btn-save-job-profile').addEventListener('click', () => {
+        AppState.jobProfile.title = document.getElementById('job-title-input').value;
+        AppState.jobProfile.department = document.getElementById('job-dept-input').value;
+        AppState.jobProfile.location = document.getElementById('job-location-input').value;
+        AppState.jobProfile.minExperience = parseInt(document.getElementById('job-minexp-input').value, 10) || 0;
+        AppState.jobProfile.education = document.getElementById('job-edu-input').value;
+        AppState.jobProfile.description = document.getElementById('job-desc-input').value;
+        renderJobCriteriaUI();
+        reevaluateAllCandidates();
+        triggerToast('Job specifications saved & pipeline recalculated!');
+      });
+
+      // Add Gate button
+      document.getElementById('btn-add-gate-field').addEventListener('click', () => {
+        const input = document.getElementById('input-custom-gate');
+        const val = input.value.trim();
+        if (val) {
+          AppState.jobProfile.hardGates.push(val);
+          input.value = '';
+          renderJobCriteriaUI();
+          reevaluateAllCandidates();
+          triggerToast(`Added gate: "${val}"`);
+        }
+      });
+
+      // Add Skill button
+      document.getElementById('btn-add-skill-field').addEventListener('click', () => {
+        const input = document.getElementById('input-custom-skill');
+        const val = input.value.trim();
+        if (val) {
+          AppState.jobProfile.preferredSkills.push(val);
+          input.value = '';
+          renderJobCriteriaUI();
+          reevaluateAllCandidates();
+          triggerToast(`Added skill: "${val}"`);
+        }
+      });
+
+      // Parse Job text button
+      document.getElementById('btn-parse-job-text').addEventListener('click', () => {
+        const raw = document.getElementById('raw-job-text').value.trim();
+        if (!raw) return;
+        const extracted = parseJobPostingText(raw);
+        AppState.jobProfile = { ...AppState.jobProfile, ...extracted };
+        renderJobCriteriaUI();
+        reevaluateAllCandidates();
+        triggerToast('Extracted job profile fields successfully!');
+      });
+
+      // Job document file drop / upload
+      const jobDropzone = document.getElementById('job-file-dropzone');
+      const jobFileInput = document.getElementById('job-file-input');
+
+      jobDropzone.addEventListener('click', () => jobFileInput.click());
+      jobFileInput.addEventListener('change', async (e) => {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          const text = await extractTextFromFile(file);
+          if (text) {
+            const extracted = parseJobPostingText(text);
+            AppState.jobProfile = { ...AppState.jobProfile, ...extracted };
+            renderJobCriteriaUI();
+            reevaluateAllCandidates();
+            triggerToast(`Parsed job posting from ${file.name}!`);
+          }
+        }
+      });
+
+      // Batch Resumes Dropzone
+      const resumeDropzone = document.getElementById('resume-batch-dropzone');
+      const resumeInput = document.getElementById('resume-batch-input');
+
+      resumeDropzone.addEventListener('click', () => resumeInput.click());
+      resumeDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        resumeDropzone.classList.add('border-indigo-500', 'bg-indigo-950/20');
+      });
+      resumeDropzone.addEventListener('dragleave', () => resumeDropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20'));
+      resumeDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        resumeDropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+        if (e.dataTransfer.files.length > 0) handleBatchResumeFiles(Array.from(e.dataTransfer.files));
+      });
+      resumeInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleBatchResumeFiles(Array.from(e.target.files));
+      });
+
+      async function handleBatchResumeFiles(files) {
+        const progressBox = document.getElementById('batch-progress-box');
+        const progressFill = document.getElementById('batch-progress-fill');
+        const progressPercent = document.getElementById('batch-progress-percent');
+        const progressText = document.getElementById('batch-progress-text');
+
+        progressBox.classList.remove('hidden');
+        let processed = 0;
+        const newBatch = [];
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const text = await extractTextFromFile(file);
+          if (text && text.trim().length > 0) {
+            // Parse candidate bio
+            const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/i);
+            const email = emailMatch ? emailMatch[1] : `cand_${Math.floor(Math.random()*10000)}@applicant.net`;
+            const phoneMatch = text.match(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+            const phone = phoneMatch ? phoneMatch[0] : 'Not specified';
+            let name = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+
+            let exp = 2;
+            const expMatch = text.match(/(\d+)\+?\s*(years|yrs|year|yr)/i);
+            if (expMatch && expMatch[1]) exp = parseInt(expMatch[1], 10);
+
+            newBatch.push(evaluateCandidate({
+              id: 'cand_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+              name,
+              email,
+              phone,
+              experience: exp,
+              rawText: text,
+              userStatus: 'pending'
+            }));
+          }
+
+          processed++;
+          const percent = Math.round((processed / files.length) * 100);
+          progressFill.style.width = `${percent}%`;
+          progressPercent.textContent = `${percent}%`;
+          progressText.innerHTML = `<span>Parsed ${processed} of ${files.length} resumes...</span>`;
+        }
+
+        setTimeout(() => {
+          progressBox.classList.add('hidden');
+          AppState.candidates = [...AppState.candidates, ...newBatch];
+          reevaluateAllCandidates();
+          triggerToast(`Successfully ingested and screened ${newBatch.length} resumes!`);
+        }, 400);
+      }
+
+      // CSV Toggle & Ingest
+      document.getElementById('btn-toggle-csv-box').addEventListener('click', () => {
+        document.getElementById('csv-paste-container').classList.toggle('hidden');
+      });
+
+      document.getElementById('btn-ingest-csv-rows').addEventListener('click', () => {
+        const raw = document.getElementById('csv-input-text').value.trim();
+        if (!raw) return;
+        const lines = raw.split('\n');
+        const parsed = [];
+        lines.forEach(line => {
+          const parts = line.split(',').map(p => p.trim());
+          if (parts.length >= 2) {
+            parsed.push(evaluateCandidate({
+              id: 'cand_csv_' + Math.random().toString(36).substr(2, 6),
+              name: parts[0] || 'Applicant',
+              email: parts[1] || 'no-email@test.com',
+              phone: 'Not provided',
+              experience: parseInt(parts[2] || '3', 10),
+              rawText: parts.slice(3).join(' ') || parts.join(' '),
+              userStatus: 'pending'
+            }));
+          }
+        });
+
+        AppState.candidates = [...AppState.candidates, ...parsed];
+        reevaluateAllCandidates();
+        document.getElementById('csv-input-text').value = '';
+        document.getElementById('csv-paste-container').classList.add('hidden');
+        triggerToast(`Ingested ${parsed.length} candidate rows!`);
+      });
+
+      // Candidate Search & Filters
+      document.getElementById('candidate-search-input').addEventListener('input', (e) => {
+        AppState.searchQuery = e.target.value;
+        renderCandidateList();
+      });
+
+      document.getElementById('candidate-filter-select').addEventListener('change', (e) => {
+        AppState.filterStatus = e.target.value;
+        renderCandidateList();
+      });
+      // Portal Resume File Dropzone Handlers
+      const portalResumeDropzone = document.getElementById('portal-resume-dropzone');
+      const portalResumeInput = document.getElementById('portal-resume-file-input');
+      const portalResumeFilename = document.getElementById('portal-resume-filename');
+      const portalExtractIndicator = document.getElementById('portal-extract-indicator');
+      const portalResumeText = document.getElementById('portal-input-resume-text');
+
+      portalResumeDropzone.addEventListener('click', () => portalResumeInput.click());
+      portalResumeInput.addEventListener('change', async (e) => {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          portalResumeFilename.textContent = file.name;
+          portalResumeFilename.className = 'text-[11px] font-bold text-indigo-300 truncate max-w-full';
+          const text = await extractTextFromFile(file);
+          if (text && text.trim().length > 0) {
+            portalResumeText.value = text.trim();
+            portalExtractIndicator.classList.remove('hidden');
+            
+            // Auto-detect years of exp if field is empty
+            const expMatch = text.match(/(\d+)\+?\s*(years|yrs|year|yr)/i);
+            const expInput = document.getElementById('portal-input-exp');
+            if (expMatch && expMatch[1] && !expInput.value) {
+              expInput.value = parseInt(expMatch[1], 10);
+            }
+
+            // Auto-detect email if empty
+            const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/i);
+            const emailInput = document.getElementById('portal-input-email');
+            if (emailMatch && emailMatch[1] && !emailInput.value) {
+              emailInput.value = emailMatch[1];
+            }
+
+            triggerToast(`Extracted resume content from ${file.name}!`);
+          }
+        }
+      });
+
+      // Portal Cover Letter Dropzone Handlers
+      const portalLetterDropzone = document.getElementById('portal-letter-dropzone');
+      const portalLetterInput = document.getElementById('portal-letter-file-input');
+      const portalLetterFilename = document.getElementById('portal-letter-filename');
+      const portalLetterPreviewBox = document.getElementById('portal-letter-preview-box');
+      const portalLetterText = document.getElementById('portal-input-letter-text');
+
+      portalLetterDropzone.addEventListener('click', () => portalLetterInput.click());
+      portalLetterInput.addEventListener('change', async (e) => {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          portalLetterFilename.textContent = file.name;
+          portalLetterFilename.className = 'text-[11px] font-bold text-indigo-300 truncate max-w-full';
+          const text = await extractTextFromFile(file);
+          if (text && text.trim().length > 0) {
+            portalLetterText.value = text.trim();
+            portalLetterPreviewBox.classList.remove('hidden');
+            triggerToast(`Cover letter ${file.name} attached!`);
+          }
+        }
+      });
+
+      // Portal Direct Apply Form Submission
+      document.getElementById('portal-application-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fullResumeText = document.getElementById('portal-input-resume-text').value;
+        const letterText = document.getElementById('portal-input-letter-text').value;
+        const combinedText = letterText ? `${fullResumeText}\n\n[COVER LETTER]\n${letterText}` : fullResumeText;
+
+        const cand = evaluateCandidate({
+          id: 'portal_' + Date.now(),
+          name: document.getElementById('portal-input-name').value,
+          email: document.getElementById('portal-input-email').value,
+          phone: document.getElementById('portal-input-phone').value,
+          experience: parseInt(document.getElementById('portal-input-exp').value, 10),
+          rawText: combinedText,
+          userStatus: 'pending'
+        });
+
+        AppState.candidates.unshift(cand);
+        reevaluateAllCandidates();
+        document.getElementById('portal-application-form').reset();
+        portalResumeFilename.textContent = 'Upload Resume File';
+        portalResumeFilename.className = 'text-[11px] font-semibold text-slate-200 truncate max-w-full';
+        portalLetterFilename.textContent = 'Upload Cover Letter';
+        portalLetterFilename.className = 'text-[11px] font-semibold text-slate-200 truncate max-w-full';
+        portalExtractIndicator.classList.add('hidden');
+        portalLetterPreviewBox.classList.add('hidden');
+        triggerToast(`Application screened and added to pipeline! (Match: ${cand.score}%)`);
+        navigateTo('view-candidates');
+      });
+
+      // Settings Modal Triggers
+      const settingsModal = document.getElementById('settings-modal');
+      const toggleAuthGate = document.getElementById('toggle-require-auth-gate');
+      const authSubpanel = document.getElementById('auth-gate-subpanel');
+
+      document.getElementById('btn-open-settings').addEventListener('click', () => {
+        toggleAuthGate.checked = AppState.security.requireAuth;
+        authSubpanel.classList.toggle('hidden', !AppState.security.requireAuth);
+        document.getElementById('sec-user-input').value = AppState.security.recruiterUser;
+        document.getElementById('sec-pass-input').value = AppState.security.recruiterPass;
+        settingsModal.classList.remove('hidden');
+      });
+
+      document.getElementById('btn-close-settings-modal').addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+      });
+
+      toggleAuthGate.addEventListener('change', (e) => {
+        authSubpanel.classList.toggle('hidden', !e.target.checked);
+      });
+
+      document.getElementById('btn-save-settings-modal').addEventListener('click', () => {
+        AppState.security.requireAuth = toggleAuthGate.checked;
+        AppState.security.recruiterUser = document.getElementById('sec-user-input').value.trim() || 'recruiter@company.internal';
+        AppState.security.recruiterPass = document.getElementById('sec-pass-input').value.trim() || 'talent2026';
+        
+        const dot = document.getElementById('settings-auth-dot');
+        if (AppState.security.requireAuth) {
+          dot.classList.remove('hidden');
+        } else {
+          dot.classList.add('hidden');
+        }
+
+        settingsModal.classList.add('hidden');
+        triggerToast('Settings updated successfully!');
+      });
+
+      document.getElementById('btn-modal-load-demo').addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+        loadSampleDemoPipeline();
+      });
+
+      document.getElementById('btn-lock-pipeline-now').addEventListener('click', () => {
+        AppState.security.requireAuth = true;
+        AppState.security.isAuthenticated = false;
+        settingsModal.classList.add('hidden');
+        document.getElementById('auth-lock-overlay').classList.remove('hidden');
+      });
+
+      document.getElementById('btn-purge-ram-memory').addEventListener('click', () => {
+        AppState.candidates = [];
+        reevaluateAllCandidates();
+        settingsModal.classList.add('hidden');
+        triggerToast('Cleared all candidate records from RAM!');
+      });
+
+      // Unlock Overlay
+      document.getElementById('btn-unlock-pipeline-btn').addEventListener('click', () => {
+        const entered = document.getElementById('lock-passcode-input').value.trim();
+        if (entered === AppState.security.recruiterPass) {
+          AppState.security.isAuthenticated = true;
+          document.getElementById('auth-lock-overlay').classList.add('hidden');
+          document.getElementById('lock-error-text').classList.add('hidden');
+          triggerToast('Pipeline unlocked!');
+        } else {
+          document.getElementById('lock-error-text').classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('btn-bypass-to-open').addEventListener('click', () => {
+        AppState.security.requireAuth = false;
+        AppState.security.isAuthenticated = true;
+        document.getElementById('auth-lock-overlay').classList.add('hidden');
+        document.getElementById('settings-auth-dot').classList.add('hidden');
+        triggerToast('Switched to Open Mode');
+      });
+    });
+  </script>
+</body>
+</html>
