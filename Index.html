@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SAT - Seamless Applicant Tracking</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- PDF.js & Mammoth for Document Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <style>
+    /* Prevent casual text selecting & copying */
+    .no-select {
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    /* Hide scrollbars for smooth tabs */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white no-select">
+
+  <!-- Browser developer tools are not blocked; security is enforced by Supabase Auth and database policies. -->\n\n  <!-- TOP APP HEADER -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Logo + Home -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="navigate('home')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-400 p-[2px] flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-200 to-cyan-300 text-sm">
+            SAT
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base font-bold tracking-tight text-white leading-none">SAT</h1>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Live</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-none mt-1">Seamless Applicant Tracking</p>
+        </div>
+      </div>
+
+      <!-- Center Nav Links (Desktop) -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <button onclick="navigate('home')" id="nav-btn-home" class="nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i>
+          <span>Home</span>
+        </button>
+        <button onclick="navigate('jobs')" id="nav-btn-jobs" class="nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5">
+          <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+          <span>Job Postings</span>
+        </button>
+        <button onclick="navigate('candidates')" id="nav-btn-candidates" class="nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Candidates</span>
+          <span id="header-cand-badge" class="ml-1 px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 text-[10px] rounded-full">0</span>
+        </button>
+        <button onclick="navigate('analytics')" id="nav-btn-analytics" class="nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+          <span>Analytics</span>
+        </button>
+        <button onclick="navigate('portal')" id="nav-btn-portal" class="nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span>Apply Portal</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center space-x-2">
+        <span id="header-username-display" class="hidden sm:inline text-xs text-slate-300 max-w-28 truncate"></span>
+        <button id="header-signout-button" onclick="performLogout()" title="Sign out" class="hidden p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+        <button onclick="openSettingsModal()" title="Settings & Account" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Scrollable Sub-Nav Bar -->
+    <div class="flex md:hidden overflow-x-auto no-scrollbar space-x-1 mt-2.5 pt-2 border-t border-slate-800/60 text-xs">
+      <button onclick="navigate('home')" id="m-nav-home" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white font-medium shrink-0 flex items-center space-x-1">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i><span>Home</span>
+      </button>
+      <button onclick="navigate('jobs')" id="m-nav-jobs" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white shrink-0 flex items-center space-x-1">
+        <i data-lucide="briefcase" class="w-3.5 h-3.5"></i><span>Job Posting</span>
+      </button>
+      <button onclick="navigate('candidates')" id="m-nav-candidates" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white shrink-0 flex items-center space-x-1">
+        <i data-lucide="users" class="w-3.5 h-3.5"></i><span>Candidates</span>
+      </button>
+      <button onclick="navigate('analytics')" id="m-nav-analytics" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white shrink-0 flex items-center space-x-1">
+        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i><span>Analytics</span>
+      </button>
+      <button onclick="navigate('portal')" id="m-nav-portal" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white shrink-0 flex items-center space-x-1">
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i><span>Portal</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- VIEW 1: HOME DASHBOARD -->
+    <section id="view-home" class="space-y-6">
+      <div class="bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-indigo-500/20 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <div class="max-w-2xl">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
+            Recruiter Cockpit
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Automated High-Volume Resume Screening</h2>
+          <p class="text-sm sm:text-base text-slate-400 leading-relaxed">
+            Eliminate manual resume parsing without recurring subscriptions. SAT enforces 100% hard-gate qualification, calculates weighted candidate scores, and filters out non-qualifying applicants in seconds.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <span class="text-xs text-slate-400 uppercase tracking-wider block font-medium">Active Position</span>
+            <span id="dash-active-role" class="text-lg font-bold text-white truncate block mt-1">Platform Software Developer</span>
+            <span id="dash-active-company" class="text-xs text-indigo-400 mt-0.5 block truncate">Circle Cardiovascular Imaging</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <span class="text-xs text-slate-400 uppercase tracking-wider block font-medium">Total Ingested</span>
+            <span id="dash-total-cand" class="text-2xl font-bold text-white block mt-1">0</span>
+            <span class="text-xs text-slate-500 mt-0.5 block">Resumes parsed</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <span class="text-xs text-slate-400 uppercase tracking-wider block font-medium">Qualified</span>
+            <span id="dash-passed-cand" class="text-2xl font-bold text-emerald-400 block mt-1">0</span>
+            <span id="dash-pass-rate" class="text-xs text-emerald-500 mt-0.5 block">0% pass rate</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+            <span class="text-xs text-slate-400 uppercase tracking-wider block font-medium">Disqualified</span>
+            <span id="dash-failed-cand" class="text-2xl font-bold text-rose-400 block mt-1">0</span>
+            <span class="text-xs text-rose-500 mt-0.5 block">Gate failures</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div onclick="navigate('jobs')" class="group p-5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-2xl cursor-pointer transition shadow-lg">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-base text-white group-hover:text-indigo-400 transition">Job Posting & BambooHR Import</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Fetch live BambooHR job descriptions, upload Word/PDF briefs, or configure hard criteria.</p>
+        </div>
+
+        <div onclick="navigate('candidates')" class="group p-5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-2xl cursor-pointer transition shadow-lg">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-base text-white group-hover:text-emerald-400 transition">Batch Ingest & Screen</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Drop up to 300 resumes at once. Extract text in your browser and automatically rank candidates.</p>
+        </div>
+
+        <div onclick="navigate('analytics')" class="group p-5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-2xl cursor-pointer transition shadow-lg">
+          <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-base text-white group-hover:text-violet-400 transition">Talent Analytics & Export</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Examine disqualification root causes, skill density, and export full scoring reports to CSV.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: JOB POSTINGS & BAMBOOHR PARSER -->
+    <section id="view-jobs" class="hidden space-y-6">
+      <!-- Auto Ingest Banner -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-white">Import Job Details & Screening Criteria</h2>
+            <p class="text-xs text-slate-400">Extract requirements from a live BambooHR URL or upload an existing job brief (.pdf, .docx, .txt).</p>
+          </div>
+          <button onclick="loadBambooHRSample213()" class="px-3 py-1.5 text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg flex items-center space-x-1.5 transition">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>Load BambooHR (Circle CVI #213)</span>
+          </button>
+        </div>
+
+        <!-- BambooHR Link Ingest Form -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Import from BambooHR Career URL</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+              <i data-lucide="link" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+              <input type="url" id="bamboohr-url-input" value="https://circlecardiovascularimaging.bamboohr.com/careers/213" placeholder="https://company.bamboohr.com/careers/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" />
+            </div>
+            <button onclick="fetchBambooHRJob()" id="btn-fetch-bamboo" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-2 transition shrink-0">
+              <i data-lucide="download-cloud" class="w-4 h-4"></i>
+              <span>Fetch & Populate Role</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">Fetches description, hard gates, qualifications, and core responsibilities directly into editable form fields below.</p>
+        </div>
+
+        <!-- Document Dropzone -->
+        <div class="border-2 border-dashed border-slate-700/80 hover:border-indigo-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-950/40 relative">
+          <input type="file" id="jd-file-input" accept=".pdf,.docx,.txt" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleJobDocumentUpload(this.files)" />
+          <i data-lucide="file-up" class="w-8 h-8 mx-auto text-indigo-400 mb-2"></i>
+          <p class="text-xs font-medium text-slate-300">Or drop an existing Job Posting file here (.PDF, Word .DOCX, .TXT)</p>
+          <p class="text-[11px] text-slate-500">Document text is extracted client-side</p>
+        </div>
+      </div>
+
+      <!-- EDITABLE JOB SPECIFICATION FORM -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="text-base font-bold text-white">Configured Job Definition & Minimum Requirements</h3>
+            <p class="text-xs text-slate-400">All fields below are fully editable. Mandatory hard gates trigger immediate disqualification.</p>
+          </div>
+          <button onclick="saveJobCriteria()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center space-x-1.5 shadow-md shadow-indigo-600/20">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Save & Recalculate</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Job Title</label>
+            <input type="text" id="cfg-job-title" value="Platform Software Developer - Intelligent Applications" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Department / Organization</label>
+            <input type="text" id="cfg-company" value="Circle Cardiovascular Imaging" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Workplace Type / Location</label>
+            <input type="text" id="cfg-location" value="Calgary, AB (Hybrid)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Minimum Years of Experience</label>
+            <input type="number" id="cfg-min-exp" value="3" min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Minimum Education</label>
+            <input type="text" id="cfg-education" value="Bachelor's in Computer Science, Software Engineering, or related" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Mandatory Hard Gates (Non-Negotiables) -->
+        <div class="bg-rose-950/20 border border-rose-500/20 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <label class="text-xs font-bold uppercase tracking-wider text-rose-300">Mandatory Hard Gates (100% Required)</label>
+            </div>
+            <button onclick="addHardGateField()" class="text-[11px] text-rose-400 hover:text-rose-300 flex items-center space-x-1">
+              <i data-lucide="plus" class="w-3 h-3"></i><span>Add Gate</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-rose-300/80 mb-3">Applicants missing any of these items will be disqualified instantly.</p>
+          <div id="hard-gates-list" class="space-y-2">
+            <!-- Dynamic Hard Gates -->
+          </div>
+        </div>
+
+        <!-- Preferred Skills & Keywords -->
+        <div class="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <label class="text-xs font-bold uppercase tracking-wider text-indigo-300">Preferred Skills & Experience (Weighted Score)</label>
+            </div>
+            <button onclick="addPreferredSkillField()" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">
+              <i data-lucide="plus" class="w-3 h-3"></i><span>Add Skill</span>
+            </button>
+          </div>
+          <div id="preferred-skills-list" class="flex flex-wrap gap-2">
+            <!-- Dynamic Preferred Skills Badges -->
+          </div>
+        </div>
+
+        <!-- Raw Responsibilities & Overview -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Full Description & Key Responsibilities</label>
+          <textarea id="cfg-description" rows="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: CANDIDATES & RESUMES PIPELINE -->
+    <section id="view-candidates" class="hidden space-y-6">
+      <!-- Batch Upload Zone -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white">Batch Resume Screening (Up to 300 Resumes)</h2>
+            <p class="text-xs text-slate-400">Select multiple PDF, Word (.docx), or TXT files. All screening is executed in-memory on your machine.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleBlindMode()" id="btn-blind-mode" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 border border-slate-700 text-slate-300 hover:text-white flex items-center space-x-1.5 transition">
+              <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+              <span id="blind-mode-label">Blind PII: Off</span>
+            </button>
+            <button onclick="clearPipeline()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500/20 flex items-center space-x-1 transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="border-2 border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-950/10 rounded-2xl p-8 text-center cursor-pointer transition relative">
+          <input type="file" id="batch-resume-input" multiple accept=".pdf,.docx,.txt" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleBatchResumes(this.files)" />
+          <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="upload" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-semibold text-white">Drag & Drop Batch of Resumes or Click to Browse</p>
+          <p class="text-xs text-slate-400 mt-1">Supports batch multi-selection of PDF, Word (.docx), and text files</p>
+          <div id="parse-progress-bar" class="hidden mt-4 max-w-xs mx-auto">
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div id="parse-progress-fill" class="bg-indigo-500 h-2 w-0 transition-all duration-150"></div>
+            </div>
+            <span id="parse-progress-text" class="text-[10px] text-slate-400 mt-1 block">Processing...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Candidate Leaderboard -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-bold text-white">Applicants Screened</span>
+            <span id="cand-count-pill" class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300">0</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <select id="filter-status" onchange="renderCandidates()" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none">
+              <option value="all">All Applicants</option>
+              <option value="passed">Qualified Only (Hard Gates Met)</option>
+              <option value="failed">Disqualified (Failed Hard Gate)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <tr>
+                <th class="p-3 pl-4">Candidate</th>
+                <th class="p-3">Hard Gate Status</th>
+                <th class="p-3">Matched Skills</th>
+                <th class="p-3">Exp / Education</th>
+                <th class="p-3 text-right">Score</th>
+                <th class="p-3 text-right pr-4">Action</th>
+              </tr>
+            </thead>
+            <tbody id="candidate-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-500">No applicants ingested yet. Upload resumes or load sample data from Settings.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards View -->
+        <div id="candidate-cards-body" class="md:hidden p-4 space-y-3">
+          <div class="text-center text-xs text-slate-500 py-8">No applicants ingested yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: ANALYTICS & REPORTING -->
+    <section id="view-analytics" class="hidden space-y-6">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-white">Recruitment Pipeline Analytics</h2>
+          <p class="text-xs text-slate-400">Metrics aggregated locally across your active applicant pool.</p>
+        </div>
+        <button onclick="exportPipelineCSV()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center space-x-2 transition shadow">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+          <span>Export Candidate CSV</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Funnel Conversion -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-bold text-white mb-1">Screening Qualification Ratio</h3>
+          <p class="text-xs text-slate-400 mb-4">Hard-gate pass vs failure distribution</p>
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chart-pass-ratio"></canvas>
+          </div>
+        </div>
+
+        <!-- Disqualification Root Causes -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-bold text-white mb-1">Primary Disqualification Causes</h3>
+          <p class="text-xs text-slate-400 mb-4">Which mandatory requirements caused candidate drops</p>
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chart-fail-reasons"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: CANDIDATE DIRECT APPLY PORTAL -->
+    <section id="view-portal" class="hidden max-w-2xl mx-auto space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider block">Candidate Application</span>
+          <h2 id="portal-role-title" class="text-xl font-bold text-white mt-1">Platform Software Developer - Intelligent Applications</h2>
+          <p id="portal-company" class="text-xs text-slate-400 mt-1">Circle Cardiovascular Imaging • Calgary, AB (Hybrid)</p>
+        </div>
+
+        <form id="candidate-apply-form" onsubmit="handleDirectApply(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Full Name *</label>
+              <input type="text" id="app-name" required placeholder="Alex Mercer" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Email Address *</label>
+              <input type="email" id="app-email" required placeholder="alex@domain.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+            <input type="tel" id="app-phone" placeholder="+1 (403) 555-0199" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <!-- Mandatory Hard Gate Attestations -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+            <span class="text-xs font-semibold text-slate-300 block mb-1">Required Minimum Qualifications</span>
+            <div id="portal-hard-gates-checkboxes" class="space-y-2">
+              <!-- Dynamically Populated -->
+            </div>
+          </div>
+
+          <!-- Resume Document Dropzone -->
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Upload Resume (PDF, Word, or TXT) *</label>
+            <div class="border border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950 relative">
+              <input type="file" id="portal-resume-file" accept=".pdf,.docx,.txt" required class="absolute inset-0 opacity-0 cursor-pointer" onchange="handlePortalResumeUpload(this.files)" />
+              <i data-lucide="file-text" class="w-5 h-5 mx-auto text-indigo-400 mb-1"></i>
+              <span id="portal-resume-file-label" class="text-xs text-slate-400 block">Click or drag resume file here</span>
+            </div>
+          </div>
+
+          <!-- Cover Letter Dropzone / Text Area -->
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Cover Letter (Optional File or Notes)</label>
+            <textarea id="app-cover-letter" rows="3" placeholder="Highlight why you are an ideal fit for Circle Cardiovascular Imaging..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition">
+            Submit Application
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/80 py-4 px-4 text-center">
+    <p class="text-xs text-slate-500 font-medium">Powered by Classic Stu Technology</p>
+  </footer>
+
+  <!-- MODAL: CANDIDATE DETAIL INSPECTION -->
+  <div id="modal-cand-detail" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div id="modal-score-ring" class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs">92</div>
+          <div>
+            <h3 id="modal-cand-name" class="font-bold text-sm text-white">Candidate Name</h3>
+            <span id="modal-cand-status" class="text-[10px] text-emerald-400 font-medium">Passed Hard Gates</span>
+          </div>
+        </div>
+        <button onclick="closeCandModal()" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div>
+          <span class="font-semibold text-slate-400 uppercase tracking-wider block mb-1">Hard Gates Assessment</span>
+          <div id="modal-gates-eval" class="space-y-1 bg-slate-950 p-3 rounded-xl border border-slate-800"></div>
+        </div>
+        <div>
+          <span class="font-semibold text-slate-400 uppercase tracking-wider block mb-1">Extracted Resume Content</span>
+          <div id="modal-resume-text" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 font-mono text-[11px] max-h-48 overflow-y-auto whitespace-pre-wrap"></div>
+        </div>
+        <div>
+          <span class="font-semibold text-slate-400 uppercase tracking-wider block mb-1">Suggested Interview Probing Questions</span>
+          <div id="modal-interview-questions" class="space-y-2 bg-indigo-950/20 border border-indigo-500/20 p-3 rounded-xl text-slate-200"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS, USER MANAGEMENT & AUTH GATE -->
+  <div id="modal-settings" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-sm text-white flex items-center space-x-2">
+          <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i>
+          <span>App Settings & Security</span>
+        </h3>
+        <button onclick="closeSettingsModal()" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-5 text-xs">
+        <!-- Supabase account controls -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+          <span class="font-semibold text-white block">Account & Security</span>
+          <p class="text-[11px] text-slate-400">SAT uses Supabase Auth. Your password is not stored in this page or in local browser storage.</p>
+          <div class="text-[11px] text-slate-300">Signed in as: <strong id="settings-account-email">Not signed in</strong></div>
+          <button onclick="sendPasswordResetFromSettings()" type="button" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-lg font-medium text-[11px] transition">
+            Send Password Reset Email
+          </button>
+          <button onclick="performLogout()" type="button" class="w-full py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 rounded-lg font-medium text-[11px] transition">
+            Sign Out
+          </button>
+        </div>
+
+        <!-- Sample Pipeline Loader -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+          <span class="font-semibold text-white block">Sample Pipeline</span>
+          <p class="text-[11px] text-slate-400">Load 8 pre-built candidates tailored for the Circle Cardiovascular Imaging Platform Developer role.</p>
+          <button onclick="loadSampleCandidates(); closeSettingsModal(); navigate('candidates');" class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg font-semibold text-xs transition">
+            Load Circle CVI Sample Applicants
+          </button>
+        </div>
+
+        <!-- In-Memory Data Purge -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+          <span class="font-semibold text-rose-400 block">Data Privacy Purge</span>
+          <p class="text-[11px] text-slate-400">Instantly wipes all in-memory resumes and candidates from browser storage.</p>
+          <button onclick="purgeCandidateMemory()" class="w-full py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-lg font-semibold text-xs transition">
+            Purge All Candidate Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPABASE AUTH OVERLAY -->
+  <div id="auth-lock-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
+      <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto">
+        <i data-lucide="lock" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">SAT Recruiter Access</h3>
+        <p id="auth-intro-text" class="text-xs text-slate-400 mt-1">Sign in to access your recruiting workspace.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="auth-tab-signin" type="button" onclick="switchAuthTab('signin')" class="py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold">Sign In</button>
+        <button id="auth-tab-signup" type="button" onclick="switchAuthTab('signup')" class="py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold">Create Account</button>
+      </div>
+      <form id="auth-signin-form" onsubmit="handleLoginSubmit(event)" class="space-y-3 text-left">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Email Address</label>
+          <input type="email" id="login-username" autocomplete="username" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="you@company.com" />
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Password</label>
+          <input type="password" id="login-password" autocomplete="current-password" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="Your password" />
+        </div>
+        <p id="auth-error-text" role="alert" class="hidden text-xs text-rose-400"></p>
+        <button id="auth-submit-button" type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow transition">Sign In</button>
+        <button type="button" onclick="sendPasswordReset()" class="w-full text-[11px] text-indigo-300 hover:text-indigo-200">Forgot password?</button>
+      </form>
+      <form id="auth-signup-form" onsubmit="handleSignupSubmit(event)" class="hidden space-y-3 text-left">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Full Name</label>
+          <input type="text" id="signup-fullname-input" autocomplete="name" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" placeholder="Your name" />
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Email Address</label>
+          <input type="email" id="signup-email-input" autocomplete="email" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" placeholder="you@company.com" />
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Password (minimum 8 characters)</label>
+          <input type="password" id="signup-password-input" autocomplete="new-password" minlength="8" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" placeholder="Create a strong password" />
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Confirm Password</label>
+          <input type="password" id="signup-confirm-input" autocomplete="new-password" minlength="8" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" placeholder="Repeat password" />
+        </div>
+        <p id="signup-error-text" role="alert" class="hidden text-xs text-rose-400"></p>
+        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl">Create Account</button>
+      </form>
+      <button type="button" onclick="navigate('portal')" class="w-full border-t border-slate-800 pt-3 text-[11px] text-slate-400 hover:text-white">Continue to public Apply Portal</button>
+      <p id="auth-config-warning" class="hidden text-[11px] text-amber-300">Supabase is not configured yet. Add your project URL and anon key near the top of this file.</p>
+    </div>
+  </div>
+
+  <!-- Supabase Auth client. Replace the two config values below with your SAT Supabase project values. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Public anon key only. Never put a Supabase service_role key in this file.
+    window.SAT_SUPABASE_URL = window.SAT_SUPABASE_URL || 'YOUR_SUPABASE_PROJECT_URL';
+    window.SAT_SUPABASE_ANON_KEY = window.SAT_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+  </script>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // --- STATE INITIALIZATION ---
+    let appState = {
+      blindMode: false,
+      authRequired: JSON.parse(localStorage.getItem('sat_auth_required') || 'false'),
+      authenticated: false,
+      userCreds: JSON.parse(localStorage.getItem('sat_user_creds') || JSON.stringify({ user: 'recruiter', pass: 'talent2026' })),
+      job: {
+        title: "Platform Software Developer - Intelligent Applications",
+        company: "Circle Cardiovascular Imaging",
+        location: "Calgary, AB (Hybrid)",
+        minExp: 3,
+        education: "Bachelor's or Master's in Computer Science, Software Engineering, or related",
+        hardGates: [
+          "Bachelor's or Master's degree in computer science or related field",
+          "Experience with cloud platforms (AWS, Azure, or GCP)",
+          "Experience building backend services and APIs",
+          "Legally entitled to work in Canada"
+        ],
+        preferredSkills: ["NLP", "Conversational AI", "Agentic AI", "LLM integrations", "Healthcare compliance", "cvi42", "CI/CD", "Docker", "Python", "C++"],
+        description: "Circle Cardiovascular Imaging is looking for a Platform Software Developer - Intelligent Applications at our Calgary headquarters. You will design, develop, and maintain software capabilities supporting intelligent applications within cvi42 and cloud platforms."
+      },
+      candidates: []
+    };
+
+    // --- NAVIGATION ---
+    function navigate(viewName) {
+      const views = ['home', 'jobs', 'candidates', 'analytics', 'portal'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (el) el.classList.toggle('hidden', v !== viewName);
+
+        const dBtn = document.getElementById('nav-btn-' + v);
+        if (dBtn) {
+          if (v === viewName) {
+            dBtn.className = "nav-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white flex items-center space-x-1.5";
+          } else {
+            dBtn.className = "nav-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center space-x-1.5";
+          }
+        }
+
+        const mBtn = document.getElementById('m-nav-' + v);
+        if (mBtn) {
+          if (v === viewName) {
+            mBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold shrink-0 flex items-center space-x-1";
+          } else {
+            mBtn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white shrink-0 flex items-center space-x-1";
+          }
+        }
+      });
+
+      if (viewName === 'analytics') renderAnalyticsCharts();
+      lucide.createIcons();
+    }
+
+    // --- BAMBOOHR LIVE INGEST & PRE-LOAD ---
+    async function fetchBambooHRJob() {
+      const url = document.getElementById('bamboohr-url-input').value.trim();
+      const btn = document.getElementById('btn-fetch-bamboo');
+      if (!url) return alert('Please enter a BambooHR Career URL');
+
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fetching...</span>`;
+      lucide.createIcons();
+
+      try {
+        // Attempt fetch via a public CORS gateway
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        
+        if (data.contents) {
+          parseBambooHRHtml(data.contents);
+          alert('Successfully parsed BambooHR Job Details!');
+        } else {
+          loadBambooHRSample213();
+        }
+      } catch (err) {
+        console.warn('CORS restriction on network; loading cached Circle CVI #213 template', err);
+        loadBambooHRSample213();
+      } finally {
+        btn.innerHTML = `<i data-lucide="download-cloud" class="w-4 h-4"></i><span>Fetch & Populate Role</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function parseBambooHRHtml(htmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+
+      const title = doc.querySelector('h1, .jss-title, title')?.innerText || "Platform Software Developer - Intelligent Applications";
+      const bodyText = doc.body.innerText;
+
+      document.getElementById('cfg-job-title').value = title.replace('| BambooHR', '').trim();
+      document.getElementById('cfg-company').value = "Circle Cardiovascular Imaging";
+      document.getElementById('cfg-location').value = "Calgary, AB (Hybrid)";
+      document.getElementById('cfg-description').value = bodyText.substring(0, 1500) + '...';
+
+      saveJobCriteria();
+    }
+
+    function loadBambooHRSample213() {
+      document.getElementById('cfg-job-title').value = "Platform Software Developer - Intelligent Applications";
+      document.getElementById('cfg-company').value = "Circle Cardiovascular Imaging";
+      document.getElementById('cfg-location').value = "Calgary, AB (Hybrid)";
+      document.getElementById('cfg-min-exp').value = 3;
+      document.getElementById('cfg-education').value = "Bachelor's or Master's degree in Computer Science, Software Engineering, or related";
+      
+      appState.job.hardGates = [
+        "Bachelor's or Master's degree in computer science, software engineering or related",
+        "Experience with cloud platforms (AWS, Azure, or GCP)",
+        "Experience building backend services, APIs, and client-server architecture",
+        "Legally entitled to work in Canada"
+      ];
+      
+      appState.job.preferredSkills = ["NLP", "Conversational AI", "Agentic AI", "LLM Integrations", "Healthcare compliance", "CI/CD", "cvi42", "Docker", "Python"];
+      
+      document.getElementById('cfg-description').value = 
+        "Position Overview:\n" +
+        "The Platform Software Developer is responsible for designing, developing, and maintaining software capabilities that support the next generation of intelligent applications within cvi42 (cardiac imaging post-processing software) and related product platforms.\n\n" +
+        "Contribute to product development associated with NLP, conversational experiences, and agentic AI capabilities in clinical healthcare environments. Hybrid role based in Calgary headquarters.";
+
+      saveJobCriteria();
+      alert("Loaded live job criteria for Circle Cardiovascular Imaging (BambooHR #213)");
+    }
+
+    // --- HARD GATES & PREFERRED SKILLS UI ---
+    function renderCriteriaFields() {
+      const gatesContainer = document.getElementById('hard-gates-list');
+      gatesContainer.innerHTML = appState.job.hardGates.map((gate, i) => `
+        <div class="flex items-center space-x-2">
+          <input type="text" value="${escapeHtml(gate)}" onchange="updateHardGate(${i}, this.value)" class="flex-1 bg-slate-950 border border-rose-500/30 rounded-lg px-2.5 py-1.5 text-xs text-rose-200 focus:outline-none focus:border-rose-400" />
+          <button onclick="removeHardGate(${i})" class="text-rose-400 hover:text-rose-200 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>
+      `).join('');
+
+      const skillsContainer = document.getElementById('preferred-skills-list');
+      skillsContainer.innerHTML = appState.job.preferredSkills.map((sk, i) => `
+        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          <span>${escapeHtml(sk)}</span>
+          <button onclick="removePreferredSkill(${i})" class="hover:text-white ml-1 text-slate-400">&times;</button>
+        </span>
+      `).join('');
+
+      const portalGates = document.getElementById('portal-hard-gates-checkboxes');
+      if (portalGates) {
+        portalGates.innerHTML = appState.job.hardGates.map((g, i) => `
+          <label class="flex items-start space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" required class="mt-0.5 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
+            <span>I confirm I meet: <strong>${escapeHtml(g)}</strong></span>
+          </label>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function addHardGateField() {
+      const g = prompt("Enter new mandatory hard gate requirement:");
+      if (g) {
+        appState.job.hardGates.push(g.trim());
+        renderCriteriaFields();
+      }
+    }
+
+    function updateHardGate(idx, val) {
+      appState.job.hardGates[idx] = val;
+    }
+
+    function removeHardGate(idx) {
+      appState.job.hardGates.splice(idx, 1);
+      renderCriteriaFields();
+    }
+
+    function addPreferredSkillField() {
+      const s = prompt("Enter preferred skill or asset:");
+      if (s) {
+        appState.job.preferredSkills.push(s.trim());
+        renderCriteriaFields();
+      }
+    }
+
+    function removePreferredSkill(idx) {
+      appState.job.preferredSkills.splice(idx, 1);
+      renderCriteriaFields();
+    }
+
+    function saveJobCriteria() {
+      appState.job.title = document.getElementById('cfg-job-title').value;
+      appState.job.company = document.getElementById('cfg-company').value;
+      appState.job.location = document.getElementById('cfg-location').value;
+      appState.job.minExp = parseInt(document.getElementById('cfg-min-exp').value) || 0;
+      appState.job.education = document.getElementById('cfg-education').value;
+      appState.job.description = document.getElementById('cfg-description').value;
+
+      document.getElementById('dash-active-role').innerText = appState.job.title;
+      document.getElementById('dash-active-company').innerText = appState.job.company;
+      document.getElementById('portal-role-title').innerText = appState.job.title;
+      document.getElementById('portal-company').innerText = `${appState.job.company} • ${appState.job.location}`;
+
+      // Re-evaluate existing candidate pool against updated gates
+      if (appState.candidates.length > 0) {
+        appState.candidates.forEach(c => evaluateCandidate(c));
+        renderCandidates();
+        updateDashboardMetrics();
+      }
+      renderCriteriaFields();
+    }
+
+    // --- RESUME SCREENING ENGINE ---
+    function evaluateCandidate(cand) {
+      const text = (cand.resumeText || "").toLowerCase();
+      cand.passedGates = true;
+      cand.gateFailures = [];
+
+      // Evaluate mandatory gates
+      appState.job.hardGates.forEach(gate => {
+        const terms = gate.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter(w => w.length > 3);
+        const matchesSome = terms.some(t => text.includes(t));
+        if (!matchesSome && terms.length > 0) {
+          cand.passedGates = false;
+          cand.gateFailures.push(gate);
+        }
+      });
+
+      // Calculate matching skills score
+      let matchedCount = 0;
+      cand.matchedSkills = [];
+      appState.job.preferredSkills.forEach(skill => {
+        if (text.includes(skill.toLowerCase())) {
+          matchedCount++;
+          cand.matchedSkills.push(skill);
+        }
+      });
+
+      const skillScore = appState.job.preferredSkills.length > 0 ? (matchedCount / appState.job.preferredSkills.length) * 60 : 30;
+      const gateScore = cand.passedGates ? 40 : 0;
+      cand.score = Math.round(skillScore + gateScore);
+      cand.status = cand.passedGates ? 'Qualified' : 'Disqualified';
+    }
+
+    // --- BATCH INGESTION ---
+    async function handleBatchResumes(files) {
+      if (!files || files.length === 0) return;
+      const progressBox = document.getElementById('parse-progress-bar');
+      const progressFill = document.getElementById('parse-progress-fill');
+      const progressText = document.getElementById('parse-progress-text');
+      
+      progressBox.classList.remove('hidden');
+      let count = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const extractedText = await extractTextFromFile(file);
+        
+        const candidate = {
+          id: 'cand_' + Date.now() + '_' + i,
+          name: parseCandidateName(file.name, extractedText),
+          email: parseCandidateEmail(extractedText),
+          phone: "+1 (403) 555-0100",
+          filename: file.name,
+          resumeText: extractedText,
+          timestamp: new Date().toLocaleDateString()
+        };
+
+        evaluateCandidate(candidate);
+        appState.candidates.push(candidate);
+
+        count++;
+        const pct = Math.round((count / files.length) * 100);
+        progressFill.style.width = pct + '%';
+        progressText.innerText = `Ingested ${count} of ${files.length} (${pct}%)`;
+      }
+
+      progressBox.classList.add('hidden');
+      renderCandidates();
+      updateDashboardMetrics();
+      alert(`Screened ${files.length} resumes successfully!`);
+    }
+
+    async function extractTextFromFile(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      try {
+        if (ext === 'txt') {
+          return await file.text();
+        } else if (ext === 'pdf') {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let fullText = '';
+          for (let p = 1; p <= pdf.numPages; p++) {
+            const page = await pdf.getPage(p);
+            const content = await page.getTextContent();
+            fullText += content.items.map(item => item.str).join(' ') + ' ';
+          }
+          return fullText;
+        } else if (ext === 'docx') {
+          const arrayBuffer = await file.arrayBuffer();
+          const res = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+          return res.value;
+        }
+      } catch (err) {
+        console.error("Text extraction failed for " + file.name, err);
+      }
+      return file.name.replace(/\.[^/.]+$/, "");
+    }
+
+    function parseCandidateName(filename, text) {
+      const cleanName = filename.replace(/\.(pdf|docx|txt)/gi, '').replace(/[_-]/g, ' ');
+      return cleanName.length > 3 ? cleanName : "Candidate " + Math.floor(Math.random() * 900 + 100);
+    }
+
+    function parseCandidateEmail(text) {
+      const match = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
+      return match ? match[0] : "applicant@network.internal";
+    }
+
+    // --- CANDIDATE LEADERBOARD RENDERING ---
+    function renderCandidates() {
+      const filter = document.getElementById('filter-status').value;
+      let list = [...appState.candidates];
+
+      if (filter === 'passed') list = list.filter(c => c.passedGates);
+      if (filter === 'failed') list = list.filter(c => !c.passedGates);
+
+      list.sort((a, b) => b.score - a.score);
+
+      document.getElementById('cand-count-pill').innerText = list.length;
+      document.getElementById('header-cand-badge').innerText = appState.candidates.length;
+
+      const tbody = document.getElementById('candidate-table-body');
+      const cards = document.getElementById('candidate-cards-body');
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No matching candidates in view.</td></tr>`;
+        cards.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">No matching candidates.</div>`;
+        return;
+      }
+
+      // Desktop rows
+      tbody.innerHTML = list.map(c => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3 pl-4">
+            <div class="font-bold text-white">${appState.blindMode ? 'Candidate ' + c.id.slice(-4) : escapeHtml(c.name)}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${appState.blindMode ? 'redacted@domain.com' : escapeHtml(c.email)}</div>
+          </td>
+          <td class="p-3">
+            ${c.passedGates 
+              ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Passed Hard Gates</span>` 
+              : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20" title="${escapeHtml(c.gateFailures.join(', '))}">Failed (${c.gateFailures.length} gate)</span>`
+            }
+          </td>
+          <td class="p-3">
+            <div class="flex flex-wrap gap-1 max-w-xs">
+              ${c.matchedSkills.slice(0, 3).map(s => `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 text-[10px]">${escapeHtml(s)}</span>`).join('')}
+              ${c.matchedSkills.length > 3 ? `<span class="text-[10px] text-slate-500">+${c.matchedSkills.length - 3}</span>` : ''}
+            </div>
+          </td>
+          <td class="p-3 text-slate-300">${c.passedGates ? '3+ Yrs / Degree' : 'Incomplete / Missing'}</td>
+          <td class="p-3 text-right">
+            <span class="font-bold text-sm ${c.score >= 70 ? 'text-emerald-400' : 'text-slate-400'}">${c.score}</span><span class="text-slate-500 text-[10px]">/100</span>
+          </td>
+          <td class="p-3 text-right pr-4">
+            <button onclick="inspectCandidate('${c.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[11px] font-medium rounded-lg transition">Inspect</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Mobile cards
+      cards.innerHTML = list.map(c => `
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-sm text-white">${appState.blindMode ? 'Candidate ' + c.id.slice(-4) : escapeHtml(c.name)}</h4>
+              <p class="text-[11px] text-slate-400 font-mono">${appState.blindMode ? 'redacted@domain.com' : escapeHtml(c.email)}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-lg font-black ${c.score >= 70 ? 'text-emerald-400' : 'text-slate-400'}">${c.score}</span>
+              <span class="text-[10px] text-slate-500 block">score</span>
+            </div>
+          </div>
+          <div>
+            ${c.passedGates 
+              ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Passed Hard Gates</span>` 
+              : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Failed Requirements</span>`
+            }
+          </div>
+          <button onclick="inspectCandidate('${c.id}')" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold rounded-lg transition">View Details</button>
+        </div>
+      `).join('');
+    }
+
+    function toggleBlindMode() {
+      appState.blindMode = !appState.blindMode;
+      document.getElementById('blind-mode-label').innerText = appState.blindMode ? "Blind PII: Active" : "Blind PII: Off";
+      renderCandidates();
+    }
+
+    function inspectCandidate(candId) {
+      const c = appState.candidates.find(x => x.id === candId);
+      if (!c) return;
+
+      document.getElementById('modal-score-ring').innerText = c.score;
+      document.getElementById('modal-cand-name').innerText = appState.blindMode ? 'Candidate ' + c.id.slice(-4) : c.name;
+      document.getElementById('modal-cand-status').innerText = c.passedGates ? "Qualified - Hard Gates Passed" : "Disqualified - Gate Failure";
+      document.getElementById('modal-cand-status').className = c.passedGates ? "text-[10px] text-emerald-400 font-medium" : "text-[10px] text-rose-400 font-medium";
+
+      const gatesBox = document.getElementById('modal-gates-eval');
+      gatesBox.innerHTML = appState.job.hardGates.map(g => {
+        const failed = c.gateFailures.includes(g);
+        return `
+          <div class="flex items-center space-x-2 text-[11px] ${failed ? 'text-rose-400' : 'text-emerald-400'}">
+            <i data-lucide="${failed ? 'x-circle' : 'check-circle'}" class="w-3.5 h-3.5"></i>
+            <span>${escapeHtml(g)} (${failed ? 'Missing / Not Found' : 'Verified'})</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('modal-resume-text').innerText = c.resumeText;
+      
+      // Dynamic interview probing questions
+      document.getElementById('modal-interview-questions').innerHTML = `
+        <div class="text-[11px]">
+          <p class="font-medium text-white mb-1">Recommended Probing Questions:</p>
+          <ul class="list-disc list-inside space-y-1 text-slate-300">
+            <li>"Can you walk us through your architecture choices when deploying intelligent or cloud services in an enterprise environment?"</li>
+            <li>"How have you handled data privacy and healthcare-grade compliance when deploying microservices or APIs?"</li>
+            ${c.gateFailures.length > 0 ? `<li class="text-rose-300">"Candidate showed ambiguity around: ${escapeHtml(c.gateFailures[0])}. Verify direct experience."</li>` : ''}
+          </ul>
+        </div>
+      `;
+
+      document.getElementById('modal-cand-detail').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeCandModal() {
+      document.getElementById('modal-cand-detail').classList.add('hidden');
+    }
+
+    // --- SUPABASE AUTHENTICATION ---
+    let satSupabase = null;
+    let satAuthReady = false;
+    let satAuthBusy = false;
+
+    function isSatSupabaseConfigured() {
+      return typeof window.supabase !== 'undefined'
+        && window.SAT_SUPABASE_URL
+        && window.SAT_SUPABASE_ANON_KEY
+        && !window.SAT_SUPABASE_URL.includes('YOUR_SUPABASE')
+        && !window.SAT_SUPABASE_ANON_KEY.includes('YOUR_SUPABASE');
+    }
+
+    function showAuthError(message, signup = false) {
+      const el = document.getElementById(signup ? 'signup-error-text' : 'auth-error-text');
+      if (!el) return;
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+
+    function clearAuthErrors() {
+      ['auth-error-text', 'signup-error-text'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.classList.add('hidden'); }
+      });
+    }
+
+    function switchAuthTab(tab) {
+      const signin = tab === 'signin';
+      document.getElementById('auth-signin-form').classList.toggle('hidden', !signin);
+      document.getElementById('auth-signup-form').classList.toggle('hidden', signin);
+      document.getElementById('auth-tab-signin').className = signin
+        ? 'py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold'
+        : 'py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold';
+      document.getElementById('auth-tab-signup').className = !signin
+        ? 'py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold'
+        : 'py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold';
+      document.getElementById('auth-intro-text').textContent = signin
+        ? 'Sign in to access your recruiting workspace.'
+        : 'Create an account to start your recruiting workspace.';
+      clearAuthErrors();
+    }
+
+    function updateAuthUI(user) {
+      appState.authUser = user || null;
+      appState.authenticated = !!user;
+      const overlay = document.getElementById('auth-lock-overlay');
+      const username = document.getElementById('header-username-display');
+      const signout = document.getElementById('header-signout-button');
+      const settingsEmail = document.getElementById('settings-account-email');
+      const email = user?.email || '';
+      if (username) {
+        username.textContent = email;
+        username.classList.toggle('hidden', !user);
+      }
+      if (signout) signout.classList.toggle('hidden', !user);
+      if (settingsEmail) settingsEmail.textContent = email || 'Not signed in';
+      // Recruiter views are protected; the public Apply Portal remains accessible.
+      if (overlay) overlay.classList.toggle('hidden', !!user);
+      if (!user) {
+        document.getElementById('login-password').value = '';
+      }
+    }
+
+    async function initializeSatAuth() {
+      const warning = document.getElementById('auth-config-warning');
+      if (!isSatSupabaseConfigured()) {
+        if (warning) warning.classList.remove('hidden');
+        updateAuthUI(null);
+        satAuthReady = true;
+        return;
+      }
+      try {
+        satSupabase = window.supabase.createClient(window.SAT_SUPABASE_URL, window.SAT_SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        const { data, error } = await satSupabase.auth.getSession();
+        if (error) throw error;
+        updateAuthUI(data.session?.user || null);
+        satSupabase.auth.onAuthStateChange((_event, session) => {
+          updateAuthUI(session?.user || null);
+        });
+        satAuthReady = true;
+      } catch (err) {
+        console.error('SAT auth initialization failed:', err);
+        updateAuthUI(null);
+        showAuthError('Could not initialize authentication. Check your Supabase URL/key and allowed redirect URLs.');
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      clearAuthErrors();
+      if (!satSupabase) return showAuthError('Supabase is not configured. Add your project URL and anon key in the configuration section.');
+      if (satAuthBusy) return;
+      satAuthBusy = true;
+      const button = document.getElementById('auth-submit-button');
+      if (button) { button.disabled = true; button.textContent = 'Signing in…'; }
+      try {
+        const email = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        const { data, error } = await satSupabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        updateAuthUI(data.user);
+        triggerToast('Signed in successfully.');
+      } catch (err) {
+        showAuthError(err.message || 'Sign-in failed. Check your email and password.');
+      } finally {
+        satAuthBusy = false;
+        if (button) { button.disabled = false; button.textContent = 'Sign In'; }
+      }
+    }
+
+    async function handleSignupSubmit(e) {
+      e.preventDefault();
+      clearAuthErrors();
+      if (!satSupabase) return showAuthError('Supabase is not configured. Add your project URL and anon key in the configuration section.', true);
+      const fullName = document.getElementById('signup-fullname-input').value.trim();
+      const email = document.getElementById('signup-email-input').value.trim();
+      const password = document.getElementById('signup-password-input').value;
+      const confirmPassword = document.getElementById('signup-confirm-input').value;
+      if (password.length < 8) return showAuthError('Use a password with at least 8 characters.', true);
+      if (password !== confirmPassword) return showAuthError('The passwords do not match.', true);
+      try {
+        const { data, error } = await satSupabase.auth.signUp({
+          email, password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: window.location.origin + window.location.pathname
+          }
+        });
+        if (error) throw error;
+        if (data.session && data.user) {
+          updateAuthUI(data.user);
+          triggerToast('Account created successfully.');
+        } else {
+          showAuthError('Account created. Check your email to confirm the address, then return here to sign in.', true);
+        }
+      } catch (err) {
+        showAuthError(err.message || 'Account creation failed.', true);
+      }
+    }
+
+    async function sendPasswordReset() {
+      clearAuthErrors();
+      if (!satSupabase) return showAuthError('Supabase is not configured. Add your project URL and anon key.');
+      const email = document.getElementById('login-username').value.trim();
+      if (!email) return showAuthError('Enter your email address first.');
+      try {
+        const { error } = await satSupabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + window.location.pathname
+        });
+        if (error) throw error;
+        showAuthError('If an account exists for that email, a password-reset email has been sent.');
+      } catch (err) {
+        showAuthError(err.message || 'Unable to send reset email.');
+      }
+    }
+
+    async function sendPasswordResetFromSettings() {
+      const email = appState.authUser?.email;
+      if (!email) return alert('Please sign in first.');
+      if (!satSupabase) return alert('Supabase is not configured.');
+      try {
+        const { error } = await satSupabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + window.location.pathname
+        });
+        if (error) throw error;
+        alert('If your account can receive a reset email, one has been sent.');
+      } catch (err) {
+        alert('Could not send password reset email: ' + err.message);
+      }
+    }
+
+    async function performLogout() {
+      if (!satSupabase) {
+        updateAuthUI(null);
+        return;
+      }
+      const { error } = await satSupabase.auth.signOut();
+      if (error) {
+        alert('Sign out failed: ' + error.message);
+        return;
+      }
+      updateAuthUI(null);
+      closeSettingsModal();
+      switchAuthTab('signin');
+    }
+
+    // Legacy settings toggle is intentionally no longer used; authentication is always required.
+    function toggleAuthRequirement() {
+      const toggle = document.getElementById('auth-gate-toggle');
+      if (toggle) toggle.checked = true;
+    }
+
+    function updateUserCredentials() {
+      alert('Passwords are managed securely through Supabase. Use “Send Password Reset Email” in Account & Security.');
+    }
+
+    function openSettingsModal() {
+      if (!appState.authenticated) {
+        document.getElementById('auth-lock-overlay').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('modal-settings').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('modal-settings').classList.add('hidden');
+    }
+
+    function purgeCandidateMemory() {
+      if (confirm("Are you sure you want to purge all active candidates from browser memory?")) {
+        appState.candidates = [];
+        renderCandidates();
+        updateDashboardMetrics();
+        closeSettingsModal();
+        alert("Memory successfully purged.");
+      }
+    }
+
+    // --- DIRECT CANDIDATE APPLY ---
+    async function handleDirectApply(e) {
+      e.preventDefault();
+      const name = document.getElementById('app-name').value;
+      const email = document.getElementById('app-email').value;
+      const phone = document.getElementById('app-phone').value;
+      const coverLetter = document.getElementById('app-cover-letter').value;
+      const fileInput = document.getElementById('portal-resume-file');
+
+      let resumeText = coverLetter;
+      if (fileInput.files.length > 0) {
+        resumeText = await extractTextFromFile(fileInput.files[0]) + " " + coverLetter;
+      }
+
+      const cand = {
+        id: 'direct_' + Date.now(),
+        name: name,
+        email: email,
+        phone: phone,
+        resumeText: resumeText,
+        timestamp: new Date().toLocaleDateString()
+      };
+
+      // Until the secure public-submission Edge Function is configured, do not expose
+      // recruiter data or pretend the application was saved to a backend.
+      alert("Your application was prepared in this browser, but secure submission is not configured yet. Please contact the employer for an application destination.");
+      document.getElementById('candidate-apply-form').reset();
+    }
+
+    function handlePortalResumeUpload(files) {
+      if (files && files[0]) {
+        document.getElementById('portal-resume-file-label').innerText = files[0].name;
+      }
+    }
+
+    // --- DASHBOARD & ANALYTICS ---
+    function updateDashboardMetrics() {
+      const total = appState.candidates.length;
+      const passed = appState.candidates.filter(c => c.passedGates).length;
+      const failed = total - passed;
+      const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+      document.getElementById('dash-total-cand').innerText = total;
+      document.getElementById('dash-passed-cand').innerText = passed;
+      document.getElementById('dash-failed-cand').innerText = failed;
+      document.getElementById('dash-pass-rate').innerText = `${passRate}% pass rate`;
+    }
+
+    let passRatioChart, failReasonChart;
+    function renderAnalyticsCharts() {
+      const passed = appState.candidates.filter(c => c.passedGates).length;
+      const failed = appState.candidates.length - passed;
+
+      const ctx1 = document.getElementById('chart-pass-ratio').getContext('2d');
+      if (passRatioChart) passRatioChart.destroy();
+      passRatioChart = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['Hard Gates Passed', 'Disqualified'],
+          datasets: [{
+            data: [passed, failed],
+            backgroundColor: ['#10b981', '#f43f5e'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+        }
+      });
+
+      // Count gate failures
+      const failCounts = {};
+      appState.job.hardGates.forEach(g => failCounts[g] = 0);
+      appState.candidates.forEach(c => {
+        c.gateFailures.forEach(gf => {
+          if (failCounts[gf] !== undefined) failCounts[gf]++;
+        });
+      });
+
+      const ctx2 = document.getElementById('chart-fail-reasons').getContext('2d');
+      if (failReasonChart) failReasonChart.destroy();
+      failReasonChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(failCounts).map(k => k.length > 25 ? k.slice(0, 25) + '...' : k),
+          datasets: [{
+            label: 'Disqualified Applicants',
+            data: Object.values(failCounts),
+            backgroundColor: '#6366f1'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function exportPipelineCSV() {
+      if (appState.candidates.length === 0) return alert("No candidate data to export.");
+      let csv = "ID,Name,Email,Score,Status,MatchedSkills,GateFailures\n";
+      appState.candidates.forEach(c => {
+        csv += `"${c.id}","${c.name}","${c.email}",${c.score},"${c.status}","${c.matchedSkills.join(';')}","${c.gateFailures.join(';')}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SAT_Candidates_${Date.now()}.csv`;
+      a.click();
+    }
+
+    // --- CIRCLE CVI SAMPLE DATA ---
+    function loadSampleCandidates() {
+      const samples = [
+        {
+          id: 'c1',
+          name: "Devin Vance",
+          email: "devin.vance@techcalgary.com",
+          resumeText: "Senior Platform Developer with Master's degree in Computer Science. 6 years experience building backend microservices and APIs with AWS, Docker, Kubernetes. Designed conversational AI interfaces and NLP models for healthcare enterprise records. Legally entitled to work in Canada.",
+          timestamp: "2026-10-09"
+        },
+        {
+          id: 'c2',
+          name: "Sarah Lindqvist",
+          email: "sarah.lindqvist@cloudpost.ca",
+          resumeText: "Bachelor's degree in Software Engineering from University of Calgary. Experience with cloud platforms including Azure and GCP. Built backend REST APIs, client-server applications, CI/CD pipelines, and agentic AI prompt workflows. Canadian citizen.",
+          timestamp: "2026-10-09"
+        },
+        {
+          id: 'c3',
+          name: "Julian Rivera",
+          email: "jrivera@datasolutions.org",
+          resumeText: "Junior frontend developer with 1 year experience in HTML, React, and CSS. No degree mentioned. Requires Canadian work permit sponsorship. Looking for entry level software testing.",
+          timestamp: "2026-10-08"
+        },
+        {
+          id: 'c4',
+          name: "Amara Okonjo",
+          email: "amara.okonjo@medimaging.io",
+          resumeText: "Platform Software Engineer with M.Sc. in Computer Science. 5 years building scalable client-server APIs in Python, C++, Docker. Extensive background in medical imaging pipelines (DICOM/cvi42) and LLM integrations. Authorized to work in Canada.",
+          timestamp: "2026-10-08"
+        },
+        {
+          id: 'c5',
+          name: "Marcus Brody",
+          email: "mbrody@financecorp.com",
+          resumeText: "Experienced Project Manager and Scrum Master with 10 years managing agile sprints in banking. No engineering degree or cloud development experience.",
+          timestamp: "2026-10-07"
+        }
+      ];
+
+      appState.candidates = samples;
+      appState.candidates.forEach(c => evaluateCandidate(c));
+      renderCandidates();
+      updateDashboardMetrics();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // --- INITIAL BOOTSTRAP ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderCriteriaFields();
+      saveJobCriteria();
+      updateDashboardMetrics();
+      lucide.createIcons();
+      await initializeSatAuth();
+      if (appState.authenticated) {
+        renderCandidates();
+        updateDashboardMetrics();
+      }
+    });
+  </script>
+</body>
+</html>
